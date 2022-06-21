@@ -1,3 +1,19 @@
+"""
+This module consists of the following functions:
+
+    1. targetid_to_lsid (targetid)
+    2. tractor_flux_to_mag (table, band)
+    3. tractor_flux_to_magnitude (flux, flux_ivar)
+    4. get_absolute_magnitude (magnitude, redshift)
+    5. combine_observations (table, array_name, obj_num)
+    
+Author : Ragadeepika Pucha
+Version : 2022 June 21
+"""
+
+####################################################################################################
+####################################################################################################
+
 import numpy as np
 
 from astropy.cosmology import WMAP9 as cosmo
@@ -9,8 +25,8 @@ from desispec import coaddition
 from desitarget.targets import decode_targetid
 from dl import queryClient as qc
 
-##############################################################################################
-##############################################################################################
+####################################################################################################
+####################################################################################################
 
 def targetid_to_lsid(targetid):
     """
@@ -31,23 +47,28 @@ def targetid_to_lsid(targetid):
     
     return(ls_id)
 
-##############################################################################################
-##############################################################################################
+####################################################################################################
+####################################################################################################
 
 
 def tractor_flux_to_mag(table, band):
     """
     Convert Flux to Magnitude from the LS Tractor Catalog.
     
-    Inputs:
-        * table - Table containing the columns from LS Tractor Catalog
-        * band - Filter whose flux needs to be converted to magnitude values.
+    Parameters
+    ----------
+    table : Astropy Table
+        Table containing the columns from LS Tractor Catalog
+    band : str
+        Filter whose flux needs to be converted to magnitude values
         
-    Outputs:
-        * Returns the magnitude and signal-to-noise ratio for the particular band.
-        * The magnitude is after reddening correction.
+    Returns
+    --------
+    mag : array
+        Reddening corrected magnitudes for the particular band
+    snr : array
+        Signal-to-noise ratio for the particular band
     """
-    
     
     flux = table['FLUX_'+band]
     flux_ivar = table['FLUX_IVAR_'+band]
@@ -58,12 +79,12 @@ def tractor_flux_to_mag(table, band):
     
     return (mag, snr)
 
-##############################################################################################
-##############################################################################################
+####################################################################################################
+####################################################################################################
 
-def flux_to_magnitude(flux, flux_ivar):
+def tractor_flux_to_magnitude(flux, flux_ivar):
     """
-    Convert Flux to Magnitude for Legacy Survey Flux Values
+    Convert Flux to Magnitude for LS Tractor Flux Values
     
     Parameters
     ----------
@@ -86,29 +107,37 @@ def flux_to_magnitude(flux, flux_ivar):
     
     return (mag, mag_err) 
     
-##############################################################################################
-##############################################################################################
+####################################################################################################
+####################################################################################################
 
-def get_abs_magnitude(m, z):
+def get_absolute_magnitude(magnitude, redshift):
     """
     Convert Apparent magnitude to Absolute magnitude.
+    Uses WMAP9 cosmology.
     
-    Inputs:
-        * m: Apparent magnitude of the object
-        * z: Redshift of the object
+    Parameters
+    ----------
+    magnitude : array
+        Array of magnitudes that need to be converted    
+    redshift : array
+        Array of redshifts
     
-    Output:
-        * M: Absolute magnitude at the luminosity distance
+    Returns
+    -------
+    Mag : array
+        Array of absolute magnitudes for the input sources
     """
-    dl = cosmo.luminosity_distance(z)
-    M = m - (5*np.log10(dl.value*1e+5))
+    dl = cosmo.luminosity_distance(redshift)
+    Mag = magnitude - (5*np.log10(dl.value*1e+5))
     
-    return (M)
+    return (Mag)
 
-##############################################################################################
-##############################################################################################
+####################################################################################################
+####################################################################################################
 
 def combine_observations(table, array_name, obj_num):
+    
+    ## Find another place to put this function
     """
     Combine all the different measurements of a particular object and return as an array.
     This is for studying light curves.
@@ -139,5 +168,5 @@ def combine_observations(table, array_name, obj_num):
     
     return (arr)
 
-##############################################################################################
-##############################################################################################
+####################################################################################################
+####################################################################################################
