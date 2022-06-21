@@ -1,3 +1,20 @@
+"""
+This module consists of different plotting-related functions, 
+including getting image cutouts and plotting them.
+It consists of following functions:
+    1. get_image_cutout (ra_in, dec_in, **kwargs)
+    2. get_multiple_image_cutouts (ra_in, dec_in, **kwargs)
+    3. get_multiwavelength_cutouts (ra_in, dec_in, **kwargs)
+    4. plot_cutouts (imgs, Nplotmax)
+    5. add_lines (z, **kwargs)
+    
+Author : Ragadeepika Pucha
+Version : 2022 June 21
+"""
+
+####################################################################################################
+####################################################################################################
+
 import numpy as np
 
 import matplotlib
@@ -6,15 +23,12 @@ from matplotlib.patches import Circle
 from matplotlib.backends import backend_pdf as pdf
 
 from astropy.table import Table
-from astropy.convolution import convolve, Box1DKernel
 from astropy.utils.data import download_file
-
-import spec_functions as sf
 
 from urllib.error import HTTPError
 
-#################################################################################################################################################################
-#################################################################################################################################################################
+####################################################################################################
+####################################################################################################
 
 def get_image_cutout(ra_in, dec_in, layername = 'ls-dr9', pixel_scale = 0.262, cutout_size = 60.):
     """
@@ -30,7 +44,6 @@ def get_image_cutout(ra_in, dec_in, layername = 'ls-dr9', pixel_scale = 0.262, c
     
     Parameters
     ----------
-    
     ra_in, dec_in : float, float
         Coordinates of the sky location for the image cutout
         
@@ -44,7 +57,7 @@ def get_image_cutout(ra_in, dec_in, layername = 'ls-dr9', pixel_scale = 0.262, c
         Size of the cutout. Default = 60" (1 arc-minute in size)
         This is used along with the pixel_scale, to calculate the number of pixels.
         Note - The number of pixels is rounded to the nearest integer. 
-        So, the final cutout size is approximately may not be the exact input value, but close to it.
+        The final cutout size is approximately may not be the exact input value, but close to it
         
     Returns
     -------
@@ -53,7 +66,8 @@ def get_image_cutout(ra_in, dec_in, layername = 'ls-dr9', pixel_scale = 0.262, c
     """
     
     pixels = cutout_size/pixel_scale
-    cutout_url = 'http://legacysurvey.org/viewer/jpeg-cutout/?ra=%.6f&dec=%.6f&layer=' %(ra_in,dec_in)+layername+'&pixscale=%g&size=%d'%(pixel_scale, pixels)
+    cutout_url = 'http://legacysurvey.org/viewer/jpeg-cutout/?ra=%.6f&dec=%.6f&layer='\
+    %(ra_in,dec_in)+layername+'&pixscale=%g&size=%d'%(pixel_scale, pixels)
     try:
         img = plt.imread(download_file(cutout_url,cache=False,show_progress=False,timeout=120))
     except HTTPError as e:
@@ -62,10 +76,11 @@ def get_image_cutout(ra_in, dec_in, layername = 'ls-dr9', pixel_scale = 0.262, c
     
     return (img)
 
-#################################################################################################################################################################
-#################################################################################################################################################################
+####################################################################################################
+####################################################################################################
 
-def get_multiple_image_cutouts(ra_in, dec_in,  layername = 'ls-dr9', pixel_scale = 0.262, cutout_size = 20.):
+def get_multiple_image_cutouts(ra_in, dec_in,  layername = 'ls-dr9', \
+                               pixel_scale = 0.262, cutout_size = 20.):
     """
     Function to get multiple image cutouts from a given survey.
     Getting images for each of these surveys require a layername.
@@ -93,7 +108,7 @@ def get_multiple_image_cutouts(ra_in, dec_in,  layername = 'ls-dr9', pixel_scale
         Size of the cutout. Default = 20"
         This is used along with the pixel_scale, to calculate the number of pixels.
         Note - The number of pixels is rounded to the nearest integer. 
-        So, the final cutout size is approximately may not be the exact input value, but close to it.
+        The final cutout size is approximately may not be the exact input value, but close to it.
         
     Returns
     -------
@@ -106,14 +121,14 @@ def get_multiple_image_cutouts(ra_in, dec_in,  layername = 'ls-dr9', pixel_scale
     N = len(ra_in)
     
     for ii in range(N):
-        img = get_image_cutout(ra_in[ii], dec_in[ii], layername = layername, pixel_scale = pixel_scale, cutout_size = cutout_size)
+        img = get_image_cutout(ra_in[ii], dec_in[ii], layername = layername, \
+                               pixel_scale = pixel_scale, cutout_size = cutout_size)
         imgs.append(img)
         
     return (imgs)
 
-#################################################################################################################################################################
-#################################################################################################################################################################
-
+####################################################################################################
+####################################################################################################
 
 def get_multiwavelength_cutouts(ra_in, dec_in, cutout_size = 60.):
     """
@@ -136,7 +151,7 @@ def get_multiwavelength_cutouts(ra_in, dec_in, cutout_size = 60.):
         The size of the cutout. Defualt = 60" (1 arc-minute in size)
         This is used along with the pixel_scale, to calculate the number of pixels.
         Note - The number of pixels is rounded to the nearest integer. 
-        So, the final cutout size is approximately may not be the exact input value, but close to it.
+        The final cutout size is approximately may not be the exact input value, but close to it.
     
     Returns
     -------
@@ -152,13 +167,14 @@ def get_multiwavelength_cutouts(ra_in, dec_in, cutout_size = 60.):
     pixels = cutout_size/pixel_scales
     
     for index, layername in enumerate(layernames):
-        img = get_image_cutout(ra_in, dec_in, layername = layername, pixel_scale = pixel_scales[index], cutout_size = cutout_size)
+        img = get_image_cutout(ra_in, dec_in, layername = layername, \
+                               pixel_scale = pixel_scales[index], cutout_size = cutout_size)
         imgs.append(img)
     
     return (imgs)
 
-#################################################################################################################################################################
-#################################################################################################################################################################
+####################################################################################################
+####################################################################################################
 
 def plot_cutouts(imgs, Nplotmax = 80):
     """
@@ -188,10 +204,11 @@ def plot_cutouts(imgs, Nplotmax = 80):
         
     return (fig)
 
-#################################################################################################################################################################
-#################################################################################################################################################################
+####################################################################################################
+####################################################################################################
 
-def add_lines(z, ax = None, rest_frame = True, em_label = True, abs_label = True, em_lines = None, abs_lines = None):
+def add_lines(z, ax = None, rest_frame = True, em_label = True,\
+              abs_label = True, em_lines = None, abs_lines = None):
     """
     Function to add emission and/or absorption lines onto a plot. 
     
@@ -282,7 +299,7 @@ def add_lines(z, ax = None, rest_frame = True, em_label = True, abs_label = True
     {"name" : "G (Ca I 4307)",  "lambda" : 4308.952, "emission": False, "label" : "G (Ca I)"},
     {"name" : "H-gamma",        "lambda" : 4341.684, "emission": False, "label" : "H$\\gamma$"},
     {"name" : "H-beta",         "lambda" : 4862.683, "emission": False, "label" : "H$\\beta$"},
-#    {"name" : "Mg I 5175",      "lambda" : 5176.441, "emission": False, "label" : "Mg I"},  #Triplet
+#   {"name" : "Mg I 5175",      "lambda" : 5176.441, "emission": False, "label" : "Mg I"},#Triplet
     {"name" : "Mg I 5183",      "lambda" : 5185.048, "emission": False, "label" : " "},
     {"name" : "Mg I 5172",      "lambda" : 5174.125, "emission": False, "label" : " "},
     {"name" : "Mg I 5167",      "lambda" : 5168.762, "emission": False, "label" : "Mg I"},
@@ -307,7 +324,8 @@ def add_lines(z, ax = None, rest_frame = True, em_label = True, abs_label = True
     # This is for selecting only those lines that are visible in the x-range of the plot
     
     for ii in range(len(emission_lines)):
-        # If rest_frame = False, redshifting the emission lines to the observed frame of the source
+        # If rest_frame = False, 
+        # redshifting the emission lines to the observed frame of the source
         if (rest_frame == False):
             lam = emission_lines[ii]['lambda']*(1+z)
         else:
@@ -323,7 +341,8 @@ def add_lines(z, ax = None, rest_frame = True, em_label = True, abs_label = True
                          fontsize = 22, rotation = 90, color = 'k')
             
     for ii in range(len(absorption_lines)):
-        # If rest_frame = False, redshifting the absorption lines to the observed frame of the source
+        # If rest_frame = False,
+        # redshifting the absorption lines to the observed frame of the source
         if (rest_frame == False):
             lam = absorption_lines[ii]['lambda']*(1+z)
         else:
@@ -337,350 +356,5 @@ def add_lines(z, ax = None, rest_frame = True, em_label = True, abs_label = True
                 ax.annotate(absorption_lines[ii]['label'], xy = (lam, 0.05), xycoords = trans, \
                          fontsize = 16, rotation = 90, color = 'r')
 
-#################################################################################################################################################################
-#################################################################################################################################################################
-
-def plot_desi_spectra(targetid, z, survey = 'sv', rest_frame = True, smoothed = True, \
-                     figsize = (14, 6), xlim = None, ylim = None, \
-                     emission_lines = False, absorption_lines = False, \
-                     em_lines = None, abs_lines = None, axs = None, ylabel = True, \
-                     spectra_kwargs = {'color':'grey', 'alpha':0.5}, \
-                     smooth_kwargs = {'color':'k', 'linewidth':2.0}):
-    """
-    Function to plot DESI spectra
-    
-    Parameters
-    ----------
-    
-    targetid : int64
-        Unique TARGETID of the object
-        
-    z : float
-        Redshift of the object
-        
-    survey : str
-        Survey of the target in DESI - sv or main
-        
-    rest_frame : bool
-        Whether or not to plot the spectra in the rest frame. Default = True
-        
-    smoothed : bool
-        Whether or not to plot the smoothed spectra or not. Default = True
-        
-    figsize : tuple
-        Figure size if axs = None
-        
-    xlim : list or tuple
-        Setting the xrange of the plot
-        
-    ylim : list or tuple
-        Setting the yrange of the plot
-        
-    emission_lines : bool
-        Whether or not to overplot emission lines. Default is False
-        
-    absorption_lines : bool
-        Whether or not to overplot absorption lines. Default is False
-        
-    em_lines : list
-        List of emission lines to plot
-        If not mentioned, all the lines in the default list will be plotted.
-        
-    abs_lines : list
-        List of absorption lines to plot
-        If not mentioned, all the lines in the default list will be plotted.
-        
-    axs : axis
-        The axis where the spectra needs to be plotted. 
-        If it is None, a figure plot will be returned with just the spectra.
-        
-    ylabel : bool
-        Whether or not to label the y-axis. Default = True
-        
-    spectra_kwargs : dict
-        Plotting keyword arguments for the spectra
-        
-    model_kwargs : dict
-        Plotting keyword arguments for the smoothed spectra
-    
-    Returns
-    -------
-    
-    fig : Figure
-        Returns the spectra figure if axs = None
-
-    """
-    
-    # Get the wavelength, flux and inverse variance given the targetid
-    lam, flux, ivar = sf.get_desi_spectra(targetid, z, survey = survey, rest_frame = rest_frame)
-    
-    if (axs == None):
-        fig = plt.figure(figsize = figsize)
-        axs = plt.gca()
-    
-    # Masking where inverse variance = 0
-    ivar = np.ma.masked_where(ivar <=0, ivar)
-    err = 1/np.sqrt(ivar)
-
-    # Plotting the spectra
-    
-    axs.plot(lam, err, 'm', ls = '--', alpha = 0.75, lw = 2.0)
-    axs.plot(lam, flux, **spectra_kwargs)
-    
-    # Smoothing the spectra using Box1DKernel - using 3 pixels
-    if (smoothed == True):
-        flux_smoothed = convolve(flux, Box1DKernel(3))
-        axs.plot(lam, flux_smoothed, **smooth_kwargs)
-        
-    if (ylabel == True):
-        axs.set_ylabel('$F_{\lambda}$ [$10^{-17}~ergs~s^{-1}~cm^{-2}~\AA^{-1}$]')
-        
-    x_bounds = axs.get_xbound()
-    x_ii = (lam >= x_bounds[0]) & (lam <= x_bounds[1])
-    flux_bounds = flux[x_ii]
-    ymin = min(flux_bounds)-1
-    ymax = max(flux_bounds)+1
-    
-    axs.set(xlim = xlim, xlabel = '$\lambda~[\AA]$')
-    
-    if (ylim == None): 
-        x_bounds = axs.get_xbound()
-        x_ii = (lam >= x_bounds[0]) & (lam <= x_bounds[1])
-        flux_bounds = flux[x_ii]
-        
-        if (len(flux_bounds) == 0):
-            axs.set_ylim([ymin, ymax])
-        else:
-            ymin_self = min(flux_bounds)-1
-            ymax_self = max(flux_bounds)+1
-            axs.set_ylim([ymin_self, ymax_self])
-    else:
-        axs.set_ylim(ylim)
-    
-#     if (ylim == None):
-#         axs.set_ylim([ymin, ymax])
-#     elif (ylim == 'self'):
-#         x_bounds = axs.get_xbound()
-#         x_ii = (lam >= x_bounds[0]) & (lam <= x_bounds[1])
-#         flux_bounds = flux[x_ii]
-#         if (len(flux_bounds) == 0):
-#             axs.set_ylim([ymin, ymax])
-#         else:
-#             ymin = min(flux_bounds)-1
-#             ymax = max(flux_bounds)+1
-#             axs.set_ylim([ymin, ymax])
-#     else:
-#         axs.set_ylim(ylim)
-        
-    # Plotting Absorption/Emission lines - only works if either of the lines is set to True
-    if (emission_lines == True)|(absorption_lines == True):    
-        if (emission_lines == False):
-            # Sending empty array of em_lines if emission_lines = False
-            em_lines = []
-        if (absorption_lines == False):
-            # Sending empty array of abs_lines 
-            abs_lines = []
-            
-        # Plotting function to add emission/absorption lines
-        add_lines(ax = axs, z = z, rest_frame = rest_frame, \
-                  em_label = True, abs_label = True, em_lines = em_lines, abs_lines = abs_lines) 
-
-    if (axs == None):
-        plt.close()
-        return (fig)
-    
-#################################################################################################################################################################
-#################################################################################################################################################################
-
-def plot_sdss_spectra(specobjid, z, rest_frame = True, plot_model = True, smoothed = False, \
-                      figsize = (14, 6), xlim = None, ylim = None, \
-                      emission_lines = False, absorption_lines = False, \
-                      em_lines = None, abs_lines = None, axs = None, ylabel = True, \
-                     spectra_kwargs = {'color': 'grey', 'alpha': 0.5},\
-                      model_kwargs = {'color': 'k', 'linewidth': 2.0}, \
-                     smooth_kwargs = {'color':'k', 'linewidth':2.0}):
-    
-    """
-    Function to plot the SDSS spectra.
-    
-    Parameters
-    ----------
-    specobjid : int64
-        Unique SDSS spectrum id
-    
-    z : float
-        Redshift of the source
-    
-    rest_frame : bool
-        Whether or not to plot the spectra in the rest-frame. Default is True.
-        
-    plot_model : bool
-        Whether or not to plot the model spectra. Default = True
-        
-    smoothed : bool
-        Whether or not to plot the smoothed spectra. Default = False
-        
-    figsize : tuple
-        Figure size if axs = None
-    
-    xlim : list or tuple
-        Setting the xrange of the plot
-        
-    ylim : list or tupe
-        Setting the yrange of the plot
-    
-    emission_lines : bool
-        Whether or not to overplot emission lines. Default is False.
-    
-    absorption_lines : bool
-        Whether or not to overplot absorpion lines. Default is False.
-        
-    em_lines : list
-        List of emission lines to plot
-        If not mentioned, all the lines in the default list will be plotted.
-        
-    abs_lines : list
-        List of absorption lines to plot
-        If not mentioned, all the lines in the default list will be plotted.
-    
-    spectra_kwargs : dict
-        Plotting keyword arguments for the spectra
-        
-    model_kwargs : dict
-        Plotting keyword arguments for the model
-        
-    spectra_kwargs : dict
-        Plotting keyword arguments for the smoothed spectra
-        
-    axs : axis
-        The axis where the spectra needs to be plotted.
-        It it is None, a figure plot will be returned with just the spectra
-        
-    Returns
-    -------
-    None
-    
-    """
-    
-    # Getting the wavelength, flux, model and ivar arrays for the given source
-    lam, flux, model, ivar = sf.get_sdss_spectra(specobjid, z, rest_frame)
-    
-    if (axs == None):
-        fig = plt.figure(figsize = figsize)
-        axs = plt.gca()
-    
-    # Masking where inverse variance = 0
-    ivar = np.ma.masked_where(ivar <=0, ivar)
-    err = 1/np.sqrt(ivar)
-
-    # Plotting the spectra    
-    axs.plot(lam, err, 'm', ls = '--', alpha = 0.75, lw = 2.0)
-    axs.plot(lam, flux, **spectra_kwargs)
-    
-    if (plot_model == True):
-        axs.plot(lam, model, **model_kwargs) 
-        
-    if (smoothed == True):
-        flux_smoothed = convolve(flux, Box1DKernel(3))
-        axs.plot(lam, flux_smoothed, **smooth_kwargs)
-        
-    if (ylabel == True):
-        axs.set_ylabel('$F_{\lambda}$ [$10^{-17}~ergs~s^{-1}~cm^{-2}~\AA^{-1}$]')
-        
-    x_bounds = axs.get_xbound()
-    x_ii = (lam >= x_bounds[0]) & (lam <= x_bounds[1])
-    flux_bounds = flux[x_ii]
-    ymin = min(flux_bounds)-1
-    ymax = max(flux_bounds)+1
-    
-    axs.set(xlim = xlim, xlabel = '$\lambda~[\AA]$')
-    
-    if (ylim == None): 
-        x_bounds = axs.get_xbound()
-        x_ii = (lam >= x_bounds[0]) & (lam <= x_bounds[1])
-        flux_bounds = flux[x_ii]
-        if (len(flux_bounds) == 0):
-            axs.set_ylim([ymin, ymax])
-        else:
-            ymin_self = min(flux_bounds)-1
-            ymax_self = max(flux_bounds)+1
-            axs.set_ylim([ymin_self, ymax_self])
-    else:
-        axs.set_ylim(ylim)
-    
-#     if (ylim == None):
-#         axs.set_ylim([ymin, ymax])
-#     elif (ylim == 'self'):
-#         x_bounds = axs.get_xbound()
-#         x_ii = (lam >= x_bounds[0]) & (lam <= x_bounds[1])
-#         flux_bounds = flux[x_ii]
-#         if (len(flux_bounds) == 0):
-#             axs.set_ylim([ymin, ymax])
-#         else:
-#             ymin = min(flux_bounds)-1
-#             ymax = max(flux_bounds)+1
-#             axs.set_ylim([ymin, ymax])
-#     else:
-#         axs.set_ylim(ylim)
-    
-    # Plotting Absorption/Emission lines - only works if either of the lines is set to True
-    if (emission_lines == True)|(absorption_lines == True):    
-        if (emission_lines == False):
-            # Sending empty array of em_lines if emission_lines = False
-            em_lines = []
-        if (absorption_lines == False):
-            # Sending empty array of abs_lines 
-            abs_lines = []
-            
-        # Plotting function to add emission/absorption lines
-        add_lines(ax = axs, z = z, rest_frame = rest_frame, \
-                           em_label = True, abs_label = True, em_lines = em_lines, abs_lines = abs_lines)
-
-    if (axs == None):
-        plt.close()
-        return (fig)
-#################################################################################################################################################################
-#################################################################################################################################################################
-
-def inspect_spectra(table, pdf_name):
-    p = pdf.PdfPages(pdf_name)
-    
-    for ii in range(len(table)):
-        img_ls = get_image_cutout(table['TARGET_RA'][ii], table['TARGET_DEC'][ii], cutout_size = 20)
-        fig = plt.figure(figsize = (26, 14), constrained_layout = True)
-        gs = fig.add_gridspec(4, 8)
-
-        if (table['SURVEY'].astype(str)[ii] == 'main'): survey = 'main'
-        else: survey = 'sv'
-        link = f"https://www.legacysurvey.org/viewer-desi/desi-spectrum/daily/targetid{table['TARGETID'].data[ii]}"
-        plt.suptitle(f'DESI Targetid: {table["TARGETID"][ii]}; Redshift: {round(table["Z"][ii], 3)}\n{link}')
-
-        ax1 = fig.add_subplot(gs[:2, 0:-2])
-        ax2 = fig.add_subplot(gs[2:,0:4])
-        ax3 = fig.add_subplot(gs[2:,4:])
-        ax4 = fig.add_subplot(gs[:2, 6:])
-
-        ax4.set(xticks = [], yticks = [])
-        ax4.imshow(img_ls)
-
-        plot_desi_spectra(table['TARGETID'][ii], table['Z'][ii], survey = survey, axs = ax1, \
-                             smoothed = True, xlim = [3500, 9300], ylabel = False)
-        ax1.set(ylabel = '$F_{\lambda}$')
-
-        plot_desi_spectra(table['TARGETID'][ii], table['Z'][ii], survey = survey, axs = ax2, xlim = [4810, 5050],  \
-                                smoothed = False, spectra_kwargs = {'color':'k'}, emission_lines = True, ylabel = False)
-        plot_desi_spectra(table['TARGETID'][ii], table['Z'][ii], survey = survey, axs = ax3, xlim = [6270, 6760],  ylabel = False,\
-                            smoothed = False, spectra_kwargs = {'color':'k'}, emission_lines = True)
-
-        ylim2 = ax2.get_ybound()
-        ylim3 = ax3.get_ybound()
-        ymin_desi = min(ylim2[0], ylim3[0])
-        ymax_desi = max(ylim2[1], ylim3[1])
-        ax2.set(ylabel = '$F_{\lambda}$', ylim = [ymin_desi, ymax_desi])
-        ax3.set(ylim = [ymin_desi, ymax_desi])
-        plt.tight_layout(rect = (0,0,1.0, 0.99))
-        plt.close()
-
-        p.savefig(fig)
-    
-    p.close()
+####################################################################################################
+####################################################################################################
