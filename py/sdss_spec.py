@@ -5,7 +5,7 @@ This works only at Data Lab. It consists of the following functions.
     2. plot_sdss_spectra (specobjid, z, rest_frame = True, **kwargs)
 
 Author : Ragadeepika Pucha
-Version : 
+Version : 2022 June 21
 """
 ####################################################################################################
 ####################################################################################################
