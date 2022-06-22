@@ -1,9 +1,14 @@
 """
 The functions in this script are related TO DESI TARGET MASKS.
-Updated to work with fuji/guadalupe.
-
+It contains the following functions:
+    1. get_targetbit_info (column_value, column_name)
+    2. targetbit_full_zcatalog (column_name, bitname, specprod = 'guadalupe', dl = False)
+    3. targetbit_sv_full_zcatalog (column_name, bitname, dl = False)
+    4. targetbit_catalog (table, column_name, bitname)
+    5. targetbit_sv_catalog (table, column_name, bitname)
+    
 Ragadeepika Pucha
-Version : 2022, May 27
+Version : 2022, June 22
 """
 
 ####################################################################################################
@@ -77,7 +82,7 @@ def get_targetbit_info(column_value, column_name):
 
 ####################################################################################################
 
-def targetbit_catalog(column_name, bitname, specprod = 'guadalupe', dl = False):
+def targetbit_full_zcatalog(column_name, bitname, specprod = 'guadalupe', dl = False):
     """
     The function to get the subset of redshift catalog given a BITMASK name.
     
@@ -99,6 +104,9 @@ def targetbit_catalog(column_name, bitname, specprod = 'guadalupe', dl = False):
     -------
     tsel : Astropy Table
         Subset of the redshift catalog that consists of all sources for which the 'bitname' is set.
+        
+    sel : array
+        Booelan mask to get the subset catalog
     """
     
     ## Specprod directory
@@ -123,11 +131,11 @@ def targetbit_catalog(column_name, bitname, specprod = 'guadalupe', dl = False):
     ## Subset of the table that has the bitname set 
     tsel = t[sel]
     
-    return (tsel)
+    return (tsel, sel)
     
 ####################################################################################################    
     
-def targetbit_sv_catalog(column_name, bitname, dl = False):
+def targetbit_sv_full_zcatalog(column_name, bitname, dl = False):
     """
     The function to get the subset of redshift catalog given a BITMASK name for the entire SV.
     Works only for fuji - combines SV1+SV2+SV3.
@@ -149,6 +157,8 @@ def targetbit_sv_catalog(column_name, bitname, dl = False):
         Subset of the redshift catalog (SV1+SV2+SV3),
         that consists of all sources for which the 'bitname' is set.
     
+    sel : array
+        Booelan mask to get the subset catalog
     """
     
     ## Specprod directory
@@ -183,6 +193,101 @@ def targetbit_sv_catalog(column_name, bitname, dl = False):
     ## Subset of the table that has the bitname set 
     tsel = t[sel]
     
-    return (tsel)
+    return (tsel, sel)
    
 ####################################################################################################        
+
+def targetbit_catalog(table, column_name, bitname):
+    """
+    The function to get the subset of the given table given a BITMASK name.
+    
+    Parameters
+    ----------
+    table : Astropy Table
+        Table where the subset needs to be selected.
+        The "column_name" should exist in the table.
+    
+    column_name : int64
+        The name of the TARGET MASK column that has the bit nam
+        
+    bitname : str
+        BIT NAME which needs to be set to be selected.
+        
+    Returns
+    -------
+    tsel : Astropy Table
+        Subset of the given table that consists of all sources for which the 'bitname' is set.
+        
+    sel : array
+        Booelan mask to get the subset catalog
+    """
+    
+    ## Mask name corresponding to a given DESI column
+    mask_name = target_dict[column_name]
+    
+    ## Mask for the required bitname
+    req_mask = mask_name[bitname]
+    
+    ## Selecting the rows based on the mask
+    sel = (table[column_name] & req_mask != 0)
+    
+    ## Subset of the table that has the bitname set 
+    tsel = table[sel]
+    
+    return (tsel, sel)
+    
+####################################################################################################    
+## The four functions need to be merged into two
+
+def targetbit_sv_full_zcatalog(table, column_name, bitname):
+    """
+    The function to get the subset of redshift catalog given a BITMASK name for the entire SV.
+    Works only for fuji - combines SV1+SV2+SV3.
+    
+    Parameters
+    ----------
+    table : Astropy Table
+        Table where the subset needs to be selected.
+        The "SV*_column_name"s should exist in the table.
+    
+    column_name : int64
+        The name of the TARGET MASK column that has the bit nam
+        
+    bitname : str
+        BIT NAME which needs to be set to be selected.
+        
+    Returns
+    -------
+    tsel : Astropy Table
+        Subset of the redshift catalog (SV1+SV2+SV3),
+        that consists of all sources for which the 'bitname' is set.
+    
+    sel : array
+        Booelan mask to get the subset catalog
+    """
+    
+    ## SV1 Mask 
+    sv1_col = f'SV1_{column_name}'
+    sv1_mask_name = target_dict[sv1_col]
+    sv1_req_mask = sv1_mask_name[bitname]
+    
+    ## SV2 Mask 
+    sv2_col = f'SV2_{column_name}'
+    sv2_mask_name = target_dict[sv2_col]
+    sv2_req_mask = sv2_mask_name[bitname]
+    
+    ## SV3 Mask 
+    sv3_col = f'SV3_{column_name}'
+    sv3_mask_name = target_dict[sv3_col]
+    sv3_req_mask = sv3_mask_name[bitname]
+    
+    ## Selecting the rows based on the masks
+    sel = (table[sv1_col] & sv1_req_mask != 0)|\
+    (table[sv2_col] & sv2_req_mask != 0)|(table[sv3_col] & sv3_req_mask != 0)
+    
+    ## Subset of the table that has the bitname set 
+    tsel = table[sel]
+    
+    return (tsel, sel)
+   
+####################################################################################################
