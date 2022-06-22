@@ -239,7 +239,7 @@ def targetbit_catalog(table, column_name, bitname):
 ####################################################################################################    
 ## The four functions need to be merged into two
 
-def targetbit_sv_full_zcatalog(table, column_name, bitname):
+def targetbit_sv_catalog(table, column_name, bitname):
     """
     The function to get the subset of redshift catalog given a BITMASK name for the entire SV.
     Works only for fuji - combines SV1+SV2+SV3.
