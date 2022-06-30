@@ -4,9 +4,10 @@ It works at both Data Lab and NERSC. Set dl = True for accessing at Data Lab.
 The module consists the following functions: 
     1. get_desi_spectra (targetid, z, specprod, rest_frame, dl)
     2. plot_desi_spectra (targetid, z, specprod, rest_frame, **kwargs)
+    3. get_fastspec_columns(table, em_lines, aon = True, snr = False, add = False)
 
 Author : Ragadeepika Pucha
-Version : 2022 June 21
+Version : 2022 June 30
 """
 ####################################################################################################
 ####################################################################################################
@@ -265,4 +266,104 @@ def plot_desi_spectra(targetid, z, specprod = 'fuji', rest_frame = True, smoothe
 
 ####################################################################################################
 ####################################################################################################
-                     
+# Update later to include the keyword of which columns
+
+def get_fastspec_columns(table, em_lines, aon = True, snr = False, add = False):
+    """
+    Function to access flux-related columns from the fastspecfit catalog.
+    
+    Parameters
+    ----------
+    
+    table : Astropy Table
+        Table containing fastspecfit-related columns
+        
+    em_lines : str or list
+        Name of the emission lines whose flux needs to be selected. 
+        If add = False, a single string is required.
+        If add = True, a list of two strings.
+        
+    aon : bool
+        Whether or not to return the Ampliture-Over-Noise Ratio for the emission-line.
+        Default is True.
+        
+    snr : bool
+        Whether or not to return the Signal-to-Noise Ratio for the emission-line.
+        Default is False.
+        
+    add : bool
+        Whether or not the total flux needs to be added.
+        This is for doublet-type lines (Example: [SII]6716,6731).
+        Default is False.
+    
+    Returns
+    -------
+    flux : array
+        Array of flux values for the table. 
+        If add = True, total flux of the combined emission lines.
+        
+    flux_aon : array
+        This is returned only if flux_aon = True.
+        Array of amplitude-over-noise ratios for the table.
+        
+    flux_snr : array
+        This is returned only if flux_snr = True.
+        Array of signal-to-noise ratios for the table.
+    """
+    
+    if (aon):
+        ## This block runs if aon = True - Request for amplitude-over-noise 
+        ## Returns both flux and AoN
+        if (add == False):
+            ## Input is only for a single emission-line
+            ## AoN = Amplitude/Amplitude_Error = Amplitude*sqrt(Amplitude_Ivar)
+            flux = table[f'{em_lines}_FLUX'].data
+            flux_aon = table[f'{em_lines}_AMP'].data*np.sqrt(table[f'{em_lines}_AMP_IVAR'].data)
+        else:
+            ## Input is a doublet.
+            ## The flux of the two lines is added.
+            ## AoN = (A1+A2)/Total_Error
+            ## Total Amplitude Error = sqrt((A1_Err^2) + (A2_Err^2))
+            ## A_Err^2 = 1/A_Ivar
+            flux = table[f'{em_lines[0]}_FLUX'].data + table[f'{em_lines[1]}_FLUX'].data
+            amp = table[f'{em_lines[0]}_AMP'].data+table[f'{em_lines[1]}_AMP'].data
+            amp_noise = np.sqrt((1/tab[f'{em_lines[0]}_AMP_IVAR'])+\
+                                (1/tab[f'{em_lines[1]}_AMP_IVAR']))
+            flux_aon = amp/amp_noise
+        return (flux, flux_aon)
+    
+    elif (snr):
+        ## This block runs if aon = False and snr = True - Request for signal-to-noise
+        ## Returns both flux and SNR
+        if (add == False):
+            ## Input is only for a single emission-line
+            ## SNR = Flux/Flux_Error = Flux*sqrt(Flux_Ivar)
+            flux = table[f'{em_lines}_FLUX'].data
+            flux_snr = table[f'{em_lines}_FLUX'].data*np.sqrt(table[f'{em_lines}_FLUX_IVAR'].data)
+        else:
+            ## Input is a doublet.
+            ## The flux of the two lines is added.
+            ## SNR = (F1+F2)/Total_Error
+            ## Total Flux Error = sqrt((F1_Err^2)+(F2_Err^2))
+            ## F_Err^2 = 1/F_Ivar
+            flux = table[f'{em_lines[0]}_FLUX'].data + table[f'{em_lines[1]}_FLUX'].data
+            flux_noise = np.sqrt((1/tab[f'{em_lines[0]}_FLUX_IVAR'])+\
+                                 (1/tab[f'{em_lines[1]}_FLUX_IVAR']))
+            flux_snr = flux/flux_noise
+        return (flux, flux_snr)
+    
+    else:
+        ## This block runs when both aon = False and snr = False
+        ## Only returns the flux
+        if (add == False):
+            ## Input is only for a single emission-line
+            flux = table[f'{em_lines}_FLUX'].data
+        else:
+            ## Input is a doublet.
+            ## The flux of the two lines is added.
+            flux = table[f'{em_lines[0]}_FLUX'].data + table[f'{em_lines[1]}_FLUX'].data
+        return (flux)
+    
+####################################################################################################
+####################################################################################################
+                
