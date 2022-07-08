@@ -7,7 +7,7 @@ The module consists the following functions:
     3. get_fastspec_columns(table, em_lines, aon = True, snr = False, add = False)
 
 Author : Ragadeepika Pucha
-Version : 2022 June 30
+Version : 2022 July 8
 """
 ####################################################################################################
 ####################################################################################################
@@ -15,7 +15,7 @@ Version : 2022 June 30
 import numpy as np
 
 from astropy.table import Table
-from fitsio
+import fitsio
 from astropy.convolution import convolve, Gaussian1DKernel
 
 import desispec.io
