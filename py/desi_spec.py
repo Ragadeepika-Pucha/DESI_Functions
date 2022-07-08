@@ -82,9 +82,9 @@ def get_desi_spectra(targetid, z, specprod = 'fuji', rest_frame = True, dl = Fal
     
     ## Required values for accessing the spectra
     ## Survey, Program, Healpix Values
-    survey = t_tgt['SURVEY']
-    program = t_tgt['PROGRAM']
-    hpx = t_tgt['HEALPIX']
+    survey = t_tgt['SURVEY'].astype(str).data[0]
+    program = t_tgt['PROGRAM'].astype(str).data[0]
+    hpx = t_tgt['HEALPIX'].data[0]
     
     ## Healpix Directory
     hpx_dir = f'{specprod_dir}/healpix'
@@ -93,12 +93,12 @@ def get_desi_spectra(targetid, z, specprod = 'fuji', rest_frame = True, dl = Fal
     coadd_filename = f'{tgt_dir}/coadd-{survey}-{program}-{hpx}.fits'
     
     ## Coadded spectra object
-    coadd_obj = desispec.io.read_spectra(coadd_name) 
+    coadd_obj = desispec.io.read_spectra(coadd_filename) 
     ## List of all targets in the coadded spectra object
     coadd_tgts = coadd_obj.target_ids().data
     
     ## Selecting the particular spectra of the targetid
-    ii = (tgts == targetid)
+    ii = (coadd_tgts == targetid)
     coadd_spec = coadd_obj[ii]
     
     ## Coadding the b,r,z into a single spectra
