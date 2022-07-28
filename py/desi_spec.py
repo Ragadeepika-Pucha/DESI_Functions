@@ -7,7 +7,7 @@ The module consists the following functions:
     3. get_fastspec_columns(table, em_lines, aon = True, snr = False, add = False)
 
 Author : Ragadeepika Pucha
-Version : 2022 July 8
+Version : 2022 July 28
 """
 ####################################################################################################
 ####################################################################################################
@@ -22,6 +22,30 @@ import desispec.io
 from desispec import coaddition
 
 import plotting_functions as pf
+
+import matplotlib.pyplot as plt
+
+## Making the matplotlib plots look nicer
+settings = {
+    'font.size':20,
+    'axes.linewidth':2.0,
+    'xtick.major.size':6.0,
+    'xtick.minor.size':4.0,
+    'xtick.major.width':2.0,
+    'xtick.minor.width':1.5,
+    'xtick.direction':'in', 
+    'xtick.minor.visible':True,
+    'xtick.top':True,
+    'ytick.major.size':6.0,
+    'ytick.minor.size':4.0,
+    'ytick.major.width':2.0,
+    'ytick.minor.width':1.5,
+    'ytick.direction':'in', 
+    'ytick.minor.visible':True,
+    'ytick.right':True
+}
+
+plt.rcParams.update(**settings)
 
 ####################################################################################################
 ####################################################################################################

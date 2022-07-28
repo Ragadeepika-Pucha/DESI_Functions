@@ -5,7 +5,7 @@ This works only at Data Lab. It consists of the following functions.
     2. plot_sdss_spectra (specobjid, z, rest_frame = True, **kwargs)
 
 Author : Ragadeepika Pucha
-Version : 2022 June 21
+Version : 2022 July 28
 """
 ####################################################################################################
 ####################################################################################################
@@ -16,6 +16,30 @@ from dl import specClient as spec
 
 from astropy.convolution import convolve, Gaussian1DKernel
 import plotting_functions as pf
+
+import matplotlib.pyplot as plt
+
+## Making the matplotlib plots look nicer
+settings = {
+    'font.size':20,
+    'axes.linewidth':2.0,
+    'xtick.major.size':6.0,
+    'xtick.minor.size':4.0,
+    'xtick.major.width':2.0,
+    'xtick.minor.width':1.5,
+    'xtick.direction':'in', 
+    'xtick.minor.visible':True,
+    'xtick.top':True,
+    'ytick.major.size':6.0,
+    'ytick.minor.size':4.0,
+    'ytick.major.width':2.0,
+    'ytick.minor.width':1.5,
+    'ytick.direction':'in', 
+    'ytick.minor.visible':True,
+    'ytick.right':True
+}
+
+plt.rcParams.update(**settings)
 
 ####################################################################################################
 ####################################################################################################
