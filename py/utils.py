@@ -202,3 +202,39 @@ def sigma_to_fwhm(sigma):
 
 ####################################################################################################
 ####################################################################################################
+
+def calculate_bh_masses(ha_lum, ha_fwhm, epsilon = 1.):
+    """
+    Calculate Black Holes masses using the broad H-alpha emission line.
+    Equation (5) from Reines+2013 - https://ui.adsabs.harvard.edu/abs/2013ApJ...775..116R/abstract
+    
+    Parameters
+    ----------
+    ha_lum : array
+        Array of broad Ha luminosity values
+        
+    ha_fwhm : array
+        Array of broad Ha FWHM values
+        
+    epsilon : float
+        Value of scale factor (can take values from 0.75-1.4)
+        e.g., Onken et al. 2004; Greene & Ho 2007a; Grier et al. 2013
+        Default = 1.0
+        
+    Returns
+    -------
+    log_mbh : array
+        Array of log(M_BH/M_sun) values for the input sources.
+    """
+    ## The three terms that are part of the equation
+    term1 = np.log10(epsilon) + 6.57
+    term2 = 0.47*np.log10(ha_lum/1e+42)
+    term3 = 2.06*np.log10(ha_fwhm/1e+3)
+    
+    ## Log of BH mass
+    log_mbh = term1 + term2 + term3 
+    
+    return (log_mbh)
+
+####################################################################################################
+####################################################################################################
