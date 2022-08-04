@@ -15,8 +15,6 @@ Version : 2022 August 4
 ####################################################################################################
 
 import numpy as np
-
-from astropy.cosmology import WMAP9 as cosmo
 from astropy.table import Table
 
 from desitarget.targets import decode_targetid
