@@ -5,6 +5,7 @@ This module consists of the following functions:
     2. get_fastspec_columns(table, em_lines, aon = True, snr = False, add = False)
     3. Flux_to_Luminosity(flux, redshift, flux_error = None)
     4. sigma_to_fwhm(sigma)
+    5. calculate_bh_masses(ha_lum, ha_fwhm, epsilon = 1.)
     
 Author : Ragadeepika Pucha
 Version : 2022 August 4
