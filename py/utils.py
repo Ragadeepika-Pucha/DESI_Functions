@@ -1,14 +1,13 @@
 """
 This module consists of the following functions:
 
-    1. targetid_to_lsid (targetid)
-    2. tractor_flux_to_mag (table, band)
-    3. tractor_flux_to_magnitude (flux, flux_ivar)
-    4. get_absolute_magnitude (magnitude, redshift)
-    5. combine_observations (table, array_name, obj_num)
+    1. get_absolute_magnitude (magnitude, redshift)
+    2. get_fastspec_columns(table, em_lines, aon = True, snr = False, add = False)
+    3. Flux_to_Luminosity(flux, redshift, flux_error = None)
+    4. sigma_to_fwhm(sigma)
     
 Author : Ragadeepika Pucha
-Version : 2022 June 21
+Version : 2022 August 4
 """
 
 ####################################################################################################
@@ -23,90 +22,7 @@ import fitsio
 import desispec.io
 from desispec import coaddition
 from desitarget.targets import decode_targetid
-from dl import queryClient as qc
 
-####################################################################################################
-####################################################################################################
-
-def targetid_to_lsid(targetid):
-    """
-    Function to convert TARGETID to LS ID
-    
-    Parameters 
-    ----------
-    targetid : int64
-        Unique DESI target identifier
-        
-    Returns
-    -------
-    ls_id : int64
-        Unique identifier for Legacy Survey objects
-    """
-    objid, brickid, release, _, _, _ = decode_targetid(targetid)
-    ls_id = (release<<40)|(brickid<<16)|(objid)
-    
-    return(ls_id)
-
-####################################################################################################
-####################################################################################################
-
-
-def tractor_flux_to_mag(table, band):
-    """
-    Convert Flux to Magnitude from the LS Tractor Catalog.
-    
-    Parameters
-    ----------
-    table : Astropy Table
-        Table containing the columns from LS Tractor Catalog
-    band : str
-        Filter whose flux needs to be converted to magnitude values
-        
-    Returns
-    --------
-    mag : array
-        Reddening corrected magnitudes for the particular band
-    snr : array
-        Signal-to-noise ratio for the particular band
-    """
-    
-    flux = table['FLUX_'+band]
-    flux_ivar = table['FLUX_IVAR_'+band]
-    snr = flux*np.sqrt(flux_ivar)
-    dered_flux = flux/table['MW_TRANSMISSION_'+band]
-    
-    mag = -2.5*np.log10(dered_flux) + 22.5
-    
-    return (mag, snr)
-
-####################################################################################################
-####################################################################################################
-
-def tractor_flux_to_magnitude(flux, flux_ivar):
-    """
-    Convert Flux to Magnitude for LS Tractor Flux Values
-    
-    Parameters
-    ----------
-    flux : array
-        Array of Flux Values
-    flux_ivar : array
-        Array of Inverse Variance Values
-        
-    Returns
-    -------
-    mag : array
-        Array of Magnitude Values
-    mag_err : array
-        Array of Magnitude Error Values
-    """
-    
-    snr = flux*np.sqrt(flux_ivar)
-    mag = 22.5 - (2.5*np.log10(flux))
-    mag_err = 2.5*np.log10(1+(1/snr))
-    
-    return (mag, mag_err) 
-    
 ####################################################################################################
 ####################################################################################################
 
@@ -135,38 +51,154 @@ def get_absolute_magnitude(magnitude, redshift):
 ####################################################################################################
 ####################################################################################################
 
-def combine_observations(table, array_name, obj_num):
-    
-    ## Find another place to put this function
+def get_fastspec_columns(table, em_lines, aon = True, snr = False, add = False):
     """
-    Combine all the different measurements of a particular object and return as an array.
-    This is for studying light curves.
+    Function to get flux and AoN/SNR outputs from Fastspecfit catalog.
     
     Parameters
     ----------
-    table : astropy table
-        Table with multiple instances of data
-    
-    array_name : str
-        Name of the column for which we have multiple data
+    table : Astropy Table
+        Table consisting of fastspecfit catalogs
         
-    obj_num : int
-        Index of the object in the table
+    em_lines : str or list
+        Emission lines whose output is required.
+        If add = False, it is a single str: with fastspec column format.
+        If add = True, the output flux is sum of lines and list of lines is inputted.
+        
+    aon : bool
+        Whether or not AoN is required as output. Default is True
+        
+    snr : bool
+        Whether or not SNR is required as output. Default is False
+        
+    add : bool
+        Whether or not the fluxes of lines need to be added. 
+        Useful for [SII], for example. The AoN or SNR is similarly corrected for sum of lines.
+        Default is False
         
     Returns
     -------
-    arr : array
-        Array of combined measurements
     
+    flux : array
+        Array of flux values for the input list of sources
+        
+    flux_aon : array
+        Only returned when aon = True. 
+        Array of AoN values for the input list of sources
+        
+    flux_snr : array
+        Only returned when snr = True.
+        Array of AoN values for the input list of sources
     """
-    num = np.arange(1, 16)
     
-    arr = np.array([])
+    if (aon):
+        ## If AoN = True, then AoN is computed and returned
+        if (add == False):
+            ## If add = False, then the flux and AoN of a single emission line is returned.
+            flux = table[f'{em_lines}_FLUX'].data
+            flux_aon = table[f'{em_lines}_AMP'].data*np.sqrt(table[f'{em_lines}_AMP_IVAR'].data)
+        else:
+            ## If add = True, then flux of two emission lines is added.
+            ## The AoN is corrected for the sum of the lines.
+            flux = table[f'{em_lines[0]}_FLUX'].data + table[f'{em_lines[1]}_FLUX'].data
+            amp = table[f'{em_lines[0]}_AMP'].data+table[f'{em_lines[1]}_AMP'].data
+            amp_noise = np.sqrt((1/tab[f'{em_lines[0]}_AMP_IVAR'])+\
+                                (1/tab[f'{em_lines[1]}_AMP_IVAR']))
+            flux_aon = amp/amp_noise
+        ## Returns flux and AoN when aon = True    
+        return (flux, flux_aon)
     
-    for n in num:
-        arr = np.append(arr, table[f'{array_name}_{n}'].data[obj_num])
+    elif (snr):
+        ## If SNR = True, then SNR is computed and returned
+        if (add == False):
+            ## If add = False, then the flux and SNR of a single emission line is returned.
+            flux = table[f'{em_lines}_FLUX'].data
+            flux_snr = table[f'{em_lines}_FLUX'].data*np.sqrt(table[f'{em_lines}_FLUX_IVAR'].data)
+        else:
+            ## If add = True, then flux of two emission lines is added.
+            ## The SNR is corrected for the sum of the lines.
+            flux = table[f'{em_lines[0]}_FLUX'].data + table[f'{em_lines[1]}_FLUX'].data
+            flux_noise = np.sqrt((1/tab[f'{em_lines[0]}_FLUX_IVAR'])+\
+                                 (1/tab[f'{em_lines[1]}_FLUX_IVAR']))
+            flux_snr = flux/flux_noise
+        ## Returns flux and SNR when snr = True
+        return (flux, flux_snr)
     
-    return (arr)
+    else:
+        ## If both aon = False and snr = False, only flux is computed and returned
+        if (add == False):
+            flux = table[f'{em_lines}_FLUX'].data
+        else:
+            flux = table[f'{em_lines[0]}_FLUX'].data + table[f'{em_lines[1]}_FLUX'].data
+        return (flux)
+
+####################################################################################################
+####################################################################################################
+
+def Flux_to_Luminosity(flux, redshift, flux_error = None):
+    """
+    Convert flux to luminosity.
+    Uses WMAP9 cosmology
+    
+    Parameters
+    ----------
+    flux : array
+        Array of flux values that needs to be converted.
+        
+    redshift : array
+        Array of redshift values of the sources.
+        
+    flux_error : array
+        Array of flux error values. If None, then only luminosity values are returned.
+        If array is given, luminosity error values are also returned.
+        
+    Returns
+    -------
+    lum : array
+        Array of luminosity values for the sources
+        
+    lum_error : array
+        Only returned when flux_error is not None.
+        Array of luminosity error values for the sources
+    """
+    
+    ## Compute luminosity distance
+    dl = cosmo.luminosity_distance(redshift)
+    dl = dl.to(u.centimeter)    # Convert to cm as flux is in ergs/s/cm^2
+    
+    # Luminosity = Flux*(4*pi*d^2)
+    lum = flux*(4*np.pi)*(dl.value**2)
+    
+    ## If Flux_error is not None, then luminosity error is computed and returned.
+    ## If Flux_error is None, then only luminosity values are returned.
+    if (flux_error is not None):
+        lum_error = flux_error*(4*np.pi)*(dl.value**2)
+        return (lum, lum_error)
+    else:
+        return (lum)
+    
+####################################################################################################
+####################################################################################################
+
+def sigma_to_fwhm(sigma):
+    """
+    Calculate FWHM of an emission line from sigma values.
+    FWHM = 2*sqrt(2*log(2))*sigma
+    
+    Parameters
+    ----------
+    sigma : array
+        Array of sigma values
+        
+    Returns
+    -------
+    fwhm : array
+        Array of FWHM values
+    """
+    
+    fwhm = 2*np.sqrt(2*np.log(2))*sigma
+    
+    return (fwhm)
 
 ####################################################################################################
 ####################################################################################################
