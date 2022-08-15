@@ -2,13 +2,12 @@
 This module consists of the following functions:
 
     1. get_absolute_magnitude (magnitude, redshift)
-    2. get_fastspec_columns(table, em_lines, aon = True, snr = False, add = False)
-    3. Flux_to_Luminosity(flux, redshift, flux_error = None)
-    4. sigma_to_fwhm(sigma)
-    5. calculate_bh_masses(ha_lum, ha_fwhm, epsilon = 1.)
+    2. Flux_to_Luminosity(flux, redshift, flux_error = None)
+    3. sigma_to_fwhm(sigma)
+    4. calculate_bh_masses(ha_lum, ha_fwhm, epsilon = 1.)
     
 Author : Ragadeepika Pucha
-Version : 2022 August 4
+Version : 2022 August 15
 """
 
 ####################################################################################################
@@ -48,90 +47,6 @@ def get_absolute_magnitude(magnitude, redshift):
     Mag = magnitude - (5*np.log10(dl.value*1e+5))
     
     return (Mag)
-
-####################################################################################################
-####################################################################################################
-
-def get_fastspec_columns(table, em_lines, aon = True, snr = False, add = False):
-    """
-    Function to get flux and AoN/SNR outputs from Fastspecfit catalog.
-    
-    Parameters
-    ----------
-    table : Astropy Table
-        Table consisting of fastspecfit catalogs
-        
-    em_lines : str or list
-        Emission lines whose output is required.
-        If add = False, it is a single str: with fastspec column format.
-        If add = True, the output flux is sum of lines and list of lines is inputted.
-        
-    aon : bool
-        Whether or not AoN is required as output. Default is True
-        
-    snr : bool
-        Whether or not SNR is required as output. Default is False
-        
-    add : bool
-        Whether or not the fluxes of lines need to be added. 
-        Useful for [SII], for example. The AoN or SNR is similarly corrected for sum of lines.
-        Default is False
-        
-    Returns
-    -------
-    
-    flux : array
-        Array of flux values for the input list of sources
-        
-    flux_aon : array
-        Only returned when aon = True. 
-        Array of AoN values for the input list of sources
-        
-    flux_snr : array
-        Only returned when snr = True.
-        Array of AoN values for the input list of sources
-    """
-    
-    if (aon):
-        ## If AoN = True, then AoN is computed and returned
-        if (add == False):
-            ## If add = False, then the flux and AoN of a single emission line is returned.
-            flux = table[f'{em_lines}_FLUX'].data
-            flux_aon = table[f'{em_lines}_AMP'].data*np.sqrt(table[f'{em_lines}_AMP_IVAR'].data)
-        else:
-            ## If add = True, then flux of two emission lines is added.
-            ## The AoN is corrected for the sum of the lines.
-            flux = table[f'{em_lines[0]}_FLUX'].data + table[f'{em_lines[1]}_FLUX'].data
-            amp = table[f'{em_lines[0]}_AMP'].data+table[f'{em_lines[1]}_AMP'].data
-            amp_noise = np.sqrt((1/tab[f'{em_lines[0]}_AMP_IVAR'])+\
-                                (1/tab[f'{em_lines[1]}_AMP_IVAR']))
-            flux_aon = amp/amp_noise
-        ## Returns flux and AoN when aon = True    
-        return (flux, flux_aon)
-    
-    elif (snr):
-        ## If SNR = True, then SNR is computed and returned
-        if (add == False):
-            ## If add = False, then the flux and SNR of a single emission line is returned.
-            flux = table[f'{em_lines}_FLUX'].data
-            flux_snr = table[f'{em_lines}_FLUX'].data*np.sqrt(table[f'{em_lines}_FLUX_IVAR'].data)
-        else:
-            ## If add = True, then flux of two emission lines is added.
-            ## The SNR is corrected for the sum of the lines.
-            flux = table[f'{em_lines[0]}_FLUX'].data + table[f'{em_lines[1]}_FLUX'].data
-            flux_noise = np.sqrt((1/tab[f'{em_lines[0]}_FLUX_IVAR'])+\
-                                 (1/tab[f'{em_lines[1]}_FLUX_IVAR']))
-            flux_snr = flux/flux_noise
-        ## Returns flux and SNR when snr = True
-        return (flux, flux_snr)
-    
-    else:
-        ## If both aon = False and snr = False, only flux is computed and returned
-        if (add == False):
-            flux = table[f'{em_lines}_FLUX'].data
-        else:
-            flux = table[f'{em_lines[0]}_FLUX'].data + table[f'{em_lines[1]}_FLUX'].data
-        return (flux)
 
 ####################################################################################################
 ####################################################################################################
