@@ -73,7 +73,7 @@ def combine_fastspec_fastphot(h_fspec, h_fphot):
                   'SII_6731_FLUX','SII_6731_FLUX_IVAR', 'SII_6731_SIGMA']
 
     fspec_meta_cols = ['TARGETID', 'SURVEY', 'PROGRAM','HEALPIX', 'RA', 'DEC', 
-                       'COADD_FIBERSTATUS', 'Z', 'ZWARN', 'SPECTYPE', 'Z_RR', 'LS_ID']
+                       'COADD_FIBERSTATUS', 'Z', 'ZERR', 'ZWARN', 'SPECTYPE', 'Z_RR', 'LS_ID']
     
     
     ## JOIN fastspec and meta data tables
