@@ -152,8 +152,8 @@ def get_fastspec_columns(table, em_lines, aon = True, snr = False, add = False):
             ## The AoN is corrected for the sum of the lines.
             flux = table[f'{em_lines[0]}_FLUX'].data + table[f'{em_lines[1]}_FLUX'].data
             amp = table[f'{em_lines[0]}_AMP'].data+table[f'{em_lines[1]}_AMP'].data
-            amp_noise = np.sqrt((1/tab[f'{em_lines[0]}_AMP_IVAR'])+\
-                                (1/tab[f'{em_lines[1]}_AMP_IVAR']))
+            amp_noise = np.sqrt((1/table[f'{em_lines[0]}_AMP_IVAR'])+\
+                                (1/table[f'{em_lines[1]}_AMP_IVAR']))
             flux_aon = amp/amp_noise
         ## Returns flux and AoN when aon = True    
         return (flux, flux_aon)
@@ -168,8 +168,8 @@ def get_fastspec_columns(table, em_lines, aon = True, snr = False, add = False):
             ## If add = True, then flux of two emission lines is added.
             ## The SNR is corrected for the sum of the lines.
             flux = table[f'{em_lines[0]}_FLUX'].data + table[f'{em_lines[1]}_FLUX'].data
-            flux_noise = np.sqrt((1/tab[f'{em_lines[0]}_FLUX_IVAR'])+\
-                                 (1/tab[f'{em_lines[1]}_FLUX_IVAR']))
+            flux_noise = np.sqrt((1/table[f'{em_lines[0]}_FLUX_IVAR'])+\
+                                 (1/table[f'{em_lines[1]}_FLUX_IVAR']))
             flux_snr = flux/flux_noise
         ## Returns flux and SNR when snr = True
         return (flux, flux_snr)

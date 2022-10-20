@@ -17,6 +17,7 @@ import numpy as np
 
 from astropy.cosmology import WMAP9 as cosmo
 from astropy.table import Table
+import astropy.units as u
 import fitsio
 
 import desispec.io

@@ -130,7 +130,7 @@ def get_desi_spectra(targetid, z, specprod = 'fuji', rest_frame = True, dl = Fal
     ## Wavelength array of the coadded spectra
     lam = res.wave['brz']                
     ## Flux array of the coadded spectra
-    flux = res.flux['brz'][0]            
+    flux = res.flux['brz'][0]  
     ## Inverse Variance array of the coadded spectra
     ivar = res.ivar['brz'][0]            
 
