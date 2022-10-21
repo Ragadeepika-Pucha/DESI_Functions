@@ -3,16 +3,20 @@ This script consists of different functions related to Visual-Inspection of DESI
 This script has the following functions:
     1) create_vi_files(table, specprod, survey, program, vi_folder)
     2) table_to_vifiles(table, vi_folder)
+    3) vi_results_table(vi_folder, filename = 'VI-output.fits')
 
 Author : Ragadeepika Pucha
-Version : 2022 October 20
+Version : 2022 October 21
 
 """
 
 ####################################################################################################
 ####################################################################################################
 import numpy as np
-from astropy.table import Table
+from astropy.table import Table, vstack
+
+import pandas as pd
+from glob import glob
 
 ####################################################################################################
 ####################################################################################################
@@ -155,3 +159,52 @@ def table_to_vifiles(table, vi_folder):
     
 ####################################################################################################
 ####################################################################################################
+
+def vi_results_table(vi_folder, filename = 'VI-output.fits'):
+    """
+    Function to create the files required to generate the VI html files from a given table.
+    It also creates the overall run_vi file -- that can be used to get all the required vi files.
+    The generated files are within some "vi_folder" with the root folder:
+    "/global/cfs/cdirs/desi/users/raga19/01_Dwarf_AGN_Project/desi_vi/"
+    Each of the vi_folder needs to have three sub-folders:
+     1) Files_for_VI -- where the *hpx*, *tgt* and *.sh files reside
+     2) VI_Files -- html VI files go here
+     3) VI_Results -- The final results of VI can be uploaded here
+     
+    Parameters
+    ----------
+    vi_folder : str
+        Folder where the VI results are stored
+        
+    filename : str
+        Filename with which the VI results table needs to be stored.
+        Default is VI-output.fits
+        
+    Returns 
+    -------
+    None.
+        The VI results table is saved in the current folder.
+    """
+    
+    vi_root = '/global/cfs/cdirs/desi/users/raga19/01_Dwarf_AGN_Project/desi_vi'
+    
+    csv_files = glob(f'{vi_root}/{vi_folder}/VI_Results/*.csv')
+    
+    t_final = Table(dtype = [('TARGETID', '<i8'), ('Redrock_z', '<f8'),\
+                             ('Redrock_deltachi2', '<f8'), ('VI_quality', '<i8'),\
+                             ('VI_comment', '<U11')])
+    for file in csv_files:
+        df = pd.read_csv(file)
+        tab = Table.from_pandas(df)
+        tab['VI_comment'] = tab['VI_comment'].astype('<U11')
+        tab_sel = tab['TARGETID', 'Redrock_z', 'Redrock_deltachi2', 'VI_quality', 'VI_comment']
+        t_final = vstack([t_final, tab_sel])
+        
+    ## Create an unmasked table by filling the masked values
+    t_final['VI_comment'].fill = ''
+    t_final = t_final.filled()
+    
+    t_final.write(filename, overwrite = True)
+    
+####################################################################################################
+####################################################################################################  
