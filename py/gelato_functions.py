@@ -45,7 +45,8 @@ Version : 2022 October 25
 import numpy as np
 import fitsio
 
-from astropy.table import Table, Column
+from astropy.io import fits
+from astropy.table import Table, Column, vstack
 from desispec import coaddition
 from desispec.io import specprod_root, read_spectra
 
