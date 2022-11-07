@@ -33,6 +33,8 @@ The script consists of following functions:
     4) divide_into_subsamples(table, n_samp, output_root)
     5) gelato_output(output_name = 'GELATO-results.fits')
     6) get_gelato_columns(table, em_line, prop = 'Flux')
+    7) velocities_to_wavelengths(v, lam_0)
+    8) plot_image_gelato_ha(table, index, title = None, gdir = None)
     
 
 Author : Ragadeepika
@@ -47,13 +49,41 @@ import fitsio
 
 from astropy.io import fits
 from astropy.table import Table, Column, vstack
+from astropy.modeling.models import Gaussian1D
+
 from desispec import coaddition
 from desispec.io import specprod_root, read_spectra
 
 from glob import glob
+import plotting_functions as pf
+
+import matplotlib.pyplot as plt
 
 ####################################################################################################
 ####################################################################################################
+
+## Making the matplotlib plots look nicer
+settings = {
+    'font.size':22,
+    'axes.linewidth':2.0,
+    'xtick.major.size':6.0,
+    'xtick.minor.size':4.0,
+    'xtick.major.width':2.0,
+    'xtick.minor.width':1.5,
+    'xtick.direction':'in', 
+    'xtick.minor.visible':True,
+    'xtick.top':True,
+    'ytick.major.size':6.0,
+    'ytick.minor.size':4.0,
+    'ytick.major.width':2.0,
+    'ytick.minor.width':1.5,
+    'ytick.direction':'in', 
+    'ytick.minor.visible':True,
+    'ytick.right':True
+}
+
+plt.rcParams.update(**settings)
+
 
 ## Output files directories
 
@@ -295,8 +325,8 @@ def gelato_output(output_name = 'GELATO-results.fits'):
         tables.append(Table(data=np.array(data),names=names,dtype = dtype))
         
     table = vstack(tables, join_type = 'outer')
-    if not type(table.mask) == type(None):
-        for c in table.colnames[1:]: table[c][table.mask[c]] = np.nan
+    #if not type(table.mask) == type(None):
+    #    for c in table.colnames[1:]: table[c][table.mask[c]] = np.nan
         
        
     table.write(output_name, overwrite = True)
@@ -345,3 +375,164 @@ def get_gelato_columns(table, em_line, prop = 'Flux'):
 
 ####################################################################################################
 ####################################################################################################
+
+def velocities_to_wavelengths(v, lam_0):
+    """
+    Function to convert from velocities (km/s) to wavelength values (in AA).
+    del_lam = (v/c)*lam_0
+    
+    Parameters
+    ----------
+    v : array or float
+        Velocities that need to be converted
+        
+    lam_0 : float
+        Central wavelength for the frame of reference
+        
+    Returns
+    -------
+    del_lam : array or float
+        Converted wavelength values
+    """
+    
+    c = 3e+5 ## in km/s
+    del_lam = (v/c)*lam_0
+    
+    return (del_lam)
+
+####################################################################################################
+####################################################################################################
+
+def plot_image_gelato_ha(table, index, title = None, gdir = None):
+    """
+    Function to plot image-cutout and spectra+gelato model focused on the Ha+[NII] region.
+    This function overplots the broad and narrow components of Ha.
+    
+    Parameters
+    ----------
+    table : astropy table
+        The table of targets from which the object is selected.
+    
+    index : int
+        Index of the object from the table that needs to be plotted.
+        
+    title : str
+        Title that will go on the top of the plot. Default is None.
+        
+    gdir : str
+        Path of the gelato output results files. Default is None.
+        
+    Returns
+    -------
+    fig : matplotlib figure
+        Figure object containing the overall plot
+    """ 
+    ## Target information
+    filename = table['Name'].astype(str).data[index]
+    arr = filename.split('.')
+    #targetid = table['TARGETID'].data[index]
+    ra = table['RA'].data[index]
+    dec = table['DEC'].data[index]
+
+    gtab_file = f'{gdir}/{arr[0]}-results.fits'
+    gtab = Table.read(gtab_file, hdu = 1)
+
+    for c in gtab.columns:
+        gtab[c].fill = 0.0
+
+    gtab = gtab.filled()
+
+    c = 3e+5  ## in km/s
+    z = table['SSP_Redshift'].data[index]/c
+
+    ## Spectra
+    lam = 10**(gtab['loglam'])/(1+z)
+    flam = gtab['flux']*(1+z)
+    ivar = gtab['ivar']/((1+z)**2)
+
+    model = gtab['MODEL']*(1+z)
+
+    cont = (gtab['SSP']+gtab['PL'])*(1+z)
+    residual = model - flam
+    
+    ## Gaussian components for Broad and Narow Halpha
+    ha_mean = 6564.613
+
+    ## Narrow H-alpha
+
+    ha_amp = get_gelato_columns(table, 'Ha', prop = 'RAmp')[index]
+    ha_sig = get_gelato_columns(table, 'Ha', prop = 'Dispersion')[index]
+
+    ha_std = velocities_to_wavelengths(ha_sig, ha_mean)
+
+    gauss_ha = Gaussian1D(amplitude = ha_amp, mean = ha_mean, stddev = ha_std)
+
+    ## Broad H-alpha
+
+    ha_broad_amp = get_gelato_columns(table, 'Ha_broad', prop = 'RAmp')[index]
+    ha_broad_sig = get_gelato_columns(table, 'Ha_broad', prop = 'Dispersion')[index]
+    ha_broad_std = velocities_to_wavelengths(ha_broad_sig, ha_mean)
+
+    gauss_ha_broad = Gaussian1D(amplitude = ha_broad_amp, mean = ha_mean, stddev = ha_broad_std)
+    
+    ## Get image-cutout
+    im = pf.get_image_cutout(ra_in = ra, dec_in = dec, cutout_size = 20)
+    
+    ## Region around [NII]+Ha
+    lam_xx = np.arange(6400, 6700, 1)
+    lam_ii = (lam >= 6400)&(lam <= 6700)
+    cont_xx = np.median(cont[lam_ii])
+
+    ## Plot
+    
+    fig = plt.figure(figsize = (14, 12))
+    gs = fig.add_gridspec(6, 5)
+    
+    plt.suptitle(title, fontsize = 20)
+
+    ax1 = fig.add_subplot(gs[0:2,0:2])
+    ax2 = fig.add_subplot(gs[0:2,2:])
+    ax3 = fig.add_subplot(gs[2:5,:])
+    ax4 = fig.add_subplot(gs[5,:], sharex = ax3)
+
+    ax1.imshow(im)
+    ax1.set(xticks = [], yticks = [])
+
+    ax2.plot(lam, flam, color = 'grey', alpha = 0.8, label = 'Flux')
+    ax2.plot(lam_xx, gauss_ha(lam_xx)+cont_xx, color = 'r', label = 'Narrow H$\\alpha$')
+    ax2.plot(lam_xx, gauss_ha_broad(lam_xx)+cont_xx, color = 'b', label = 'Broad H$\\alpha$')
+    ax2.legend(loc = 'best', fontsize = 12)
+    ax2.set(ylabel = '$F_{\lambda}$', xlim = [6440, 6680], xlabel = '$\lambda$')
+
+    x_bounds = ax2.get_xbound()
+    x_ii = (lam >= x_bounds[0])&(lam <= x_bounds[1])
+    flam_ii = flam[x_ii]
+    ymin_ii = min(flam_ii)-1
+    ymax_ii = max(flam_ii)+1
+    ax2.set_ylim([ymin_ii, ymax_ii])
+
+    ax3.plot(lam, flam, color = 'grey', alpha = 0.8, label = 'Flux')
+    ax3.plot(lam, model, color = 'k', lw = 2.0, label = 'Model')
+    ax3.legend(loc = 'best', fontsize = 16)
+    ax3.set(ylabel = '$F_{\lambda}$', xlim = [4600, 6900])
+
+    x_bounds = ax3.get_xbound()
+    x_ii = (lam >= x_bounds[0])&(lam <= x_bounds[1])
+    flam_ii = flam[x_ii]
+    ymin_ii = min(flam_ii)-1
+    ymax_ii = max(flam_ii)+1
+    ax3.set_ylim([ymin_ii, ymax_ii])
+
+    ax4.scatter(lam, residual, color = 'k', s = 10, marker = '.', alpha = 0.5)
+    ax4.axhline(0.0, color = 'firebrick', ls = '--', lw = 3.0)
+    ax4.set_ylabel('Residual', fontsize = 16)
+    ax4.set(ylim = [-7,7], xlabel = '$\lambda$')
+
+    plt.tight_layout(rect=[0, 0, 1., 0.99])
+    plt.close()
+    
+    return (fig)
+    
+####################################################################################################
+####################################################################################################
+    
