@@ -97,7 +97,7 @@ def Flux_to_Luminosity(flux, redshift, flux_error = None):
 ####################################################################################################
 ####################################################################################################
 
-def sigma_to_fwhm(sigma):
+def sigma_to_fwhm(sigma, sigma_err):
     """
     Calculate FWHM of an emission line from sigma values.
     FWHM = 2*sqrt(2*log(2))*sigma
@@ -107,15 +107,22 @@ def sigma_to_fwhm(sigma):
     sigma : array
         Array of sigma values
         
+    sigma_err : array
+        Array of sigma error values
+        
     Returns
     -------
     fwhm : array
         Array of FWHM values
+        
+    fwhm_err : array
+        Array of FWHM error values
     """
     
     fwhm = 2*np.sqrt(2*np.log(2))*sigma
+    fwhm_err = 2*np.sqrt(2*np.log(2))*sigma_err
     
-    return (fwhm)
+    return (fwhm, fwhm_err)
 
 ####################################################################################################
 ####################################################################################################
@@ -161,7 +168,7 @@ def calculate_bh_masses(ha_lum, ha_lum_err, ha_fwhm, ha_fwhm_err, epsilon = 1.):
     term1 = 0.204*(ha_lum_err/ha_lum)
     term2 = 0.895*(ha_fwhm_err/ha_fwhm)
     
-    log_mhb_err = term1 + term2
+    log_mbh_err = term1 + term2
     
     return (log_mbh, log_mbh_err)
 
