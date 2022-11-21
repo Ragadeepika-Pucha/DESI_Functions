@@ -97,7 +97,7 @@ def Flux_to_Luminosity(flux, redshift, flux_error = None):
 ####################################################################################################
 ####################################################################################################
 
-def sigma_to_fwhm(sigma, sigma_err):
+def sigma_to_fwhm(sigma, sigma_err = None):
     """
     Calculate FWHM of an emission line from sigma values.
     FWHM = 2*sqrt(2*log(2))*sigma
@@ -120,14 +120,17 @@ def sigma_to_fwhm(sigma, sigma_err):
     """
     
     fwhm = 2*np.sqrt(2*np.log(2))*sigma
-    fwhm_err = 2*np.sqrt(2*np.log(2))*sigma_err
     
-    return (fwhm, fwhm_err)
+    if (sigma_err is not None):
+        fwhm_err = 2*np.sqrt(2*np.log(2))*sigma_err
+        return (fwhm, fwhm_err)
+    else:
+        return (fwhm)
 
 ####################################################################################################
 ####################################################################################################
 
-def calculate_bh_masses(ha_lum, ha_lum_err, ha_fwhm, ha_fwhm_err, epsilon = 1.):
+def calculate_bh_masses(ha_lum, ha_fwhm, ha_lum_err = None, ha_fwhm_err = None, epsilon = 1.):
     """
     Calculate Black Holes masses and errors using the broad H-alpha emission line.
     Equation (5) from Reines+2013 - https://ui.adsabs.harvard.edu/abs/2013ApJ...775..116R/abstract
@@ -164,13 +167,16 @@ def calculate_bh_masses(ha_lum, ha_lum_err, ha_fwhm, ha_fwhm_err, epsilon = 1.):
     ## Log of BH mass
     log_mbh = term1 + term2 + term3 
     
-    ## Error calculation
-    term1 = 0.204*(ha_lum_err/ha_lum)
-    term2 = 0.895*(ha_fwhm_err/ha_fwhm)
-    
-    log_mbh_err = term1 + term2
-    
-    return (log_mbh, log_mbh_err)
+    if ((ha_lum_err is not None)&(ha_fwhm_err is not None)):
+        ## Error calculation
+        term1 = 0.204*(ha_lum_err/ha_lum)
+        term2 = 0.895*(ha_fwhm_err/ha_fwhm)
+
+        log_mbh_err = np.sqrt((term1**2) + (term2**2))
+
+        return (log_mbh, log_mbh_err)
+    else:
+        return (log_mbh)
 
 ####################################################################################################
 ####################################################################################################
