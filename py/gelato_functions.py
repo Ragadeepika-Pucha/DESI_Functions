@@ -442,17 +442,19 @@ def plot_image_gelato_ha(table, index, title = None, gdir = None):
 
     gtab = gtab.filled()
 
-    c = 3e+5  ## in km/s
-    z = table['SSP_Redshift'].data[index]/c
-
+    #c = 3e+5  ## in km/s
+    #z = table['SSP_Redshift'].data[index]/c
+    z = table['Z'].data[index]
     ## Spectra
     lam = 10**(gtab['loglam'])/(1+z)
     flam = gtab['flux']*(1+z)
     ivar = gtab['ivar']/((1+z)**2)
 
     model = gtab['MODEL']*(1+z)
-
-    cont = (gtab['SSP']+gtab['PL'])*(1+z)
+    if ('PL' in gtab.colnames):
+        cont = (gtab['SSP']+gtab['PL'])*(1+z)
+    else:
+        cont = gtab['SSP']*(1+z)
     residual = model - flam
     
     ## Gaussian components for Broad and Narow Halpha
