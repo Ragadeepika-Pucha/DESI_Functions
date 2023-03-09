@@ -146,7 +146,7 @@ def get_desi_spectra(targetid, z, specprod = 'fuji', rest_frame = True, dl = Fal
 ####################################################################################################
 
 def plot_desi_spectra(targetid, z, specprod = 'fuji', rest_frame = True, smoothed = True, \
-                     figsize = (14, 6), xlim = None, ylim = None, \
+                     figsize = (14, 6), title = None, xlim = None, ylim = None, \
                      emission_lines = False, absorption_lines = False, \
                      em_lines = None, abs_lines = None, axs = None, ylabel = True, \
                      spectra_kwargs = {'color':'grey', 'alpha':0.5}, \
@@ -230,6 +230,10 @@ def plot_desi_spectra(targetid, z, specprod = 'fuji', rest_frame = True, smoothe
     # Masking where inverse variance = 0
     ivar = np.ma.masked_where(ivar <=0, ivar)
     err = 1/np.sqrt(ivar)
+    
+    ## Title if given
+    if (title is not None):
+        plt.title(title, fontsize = 14)
 
     # Plotting the spectra
     axs.plot(lam, err, 'm', ls = '--', alpha = 0.75, lw = 2.0)
