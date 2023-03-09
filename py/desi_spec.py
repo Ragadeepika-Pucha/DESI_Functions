@@ -175,6 +175,9 @@ def plot_desi_spectra(targetid, z, specprod = 'fuji', rest_frame = True, smoothe
     figsize : tuple
         Figure size if axs = None
         
+    title : str
+        Title of the plot if needed. Default = None
+        
     xlim : list or tuple
         Setting the xrange of the plot
         
