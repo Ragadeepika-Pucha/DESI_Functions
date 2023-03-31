@@ -75,7 +75,7 @@ def combine_fastspec_fastphot(h_fspec, h_fphot):
 
     fspec_meta_cols = ['TARGETID', 'SURVEY', 'PROGRAM','HEALPIX', 'RA', 'DEC', 
                        'COADD_FIBERSTATUS', 'Z', 'ZWARN', 'SPECTYPE', 'Z_RR', 'LS_ID']
-    
+        
     
     ## JOIN fastspec and meta data tables
     fspec_sel = fspec[fspec_cols]

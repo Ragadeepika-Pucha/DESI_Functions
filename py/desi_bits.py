@@ -112,7 +112,8 @@ def targetbit_zcatalog(column_name, bitname, specprod = 'guadalupe', table = Non
     tsel : Astropy Table
         Subset of the redshift catalog that consists of all sources for which the 'bitname' is set.
     """
-    if (table == None):
+
+    if (table is None):
         ## Specprod directory
         if (dl == True):
             specprod_dir = f'/dlusers/raga_steph/DESI/spectro/redux/{specprod}'
