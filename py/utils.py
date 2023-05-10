@@ -5,6 +5,8 @@ This module consists of the following functions:
     2. Flux_to_Luminosity(flux, redshift, flux_error = None)
     3. sigma_to_fwhm(sigma)
     4. calculate_bh_masses(ha_lum, ha_fwhm, epsilon = 1.)
+    5. tractor_flux_to_mag (table, band)
+    6. tractor_flux_to_magnitude (flux, flux_ivar)
     
 Author : Ragadeepika Pucha
 Version : 2022 August 15
@@ -178,5 +180,64 @@ def calculate_bh_masses(ha_lum, ha_fwhm, ha_lum_err = None, ha_fwhm_err = None, 
     else:
         return (log_mbh)
 
+####################################################################################################
+####################################################################################################
+
+def tractor_flux_to_mag(table, band):
+    """
+    Convert Flux to Magnitude from the LS Tractor Catalog.
+    
+    Parameters
+    ----------
+    table : Astropy Table
+        Table containing the columns from LS Tractor Catalog
+    band : str
+        Filter whose flux needs to be converted to magnitude values
+        
+    Returns
+    --------
+    mag : array
+        Reddening corrected magnitudes for the particular band
+    snr : array
+        Signal-to-noise ratio for the particular band
+    """
+    
+    flux = table['FLUX_'+band]
+    flux_ivar = table['FLUX_IVAR_'+band]
+    snr = flux*np.sqrt(flux_ivar)
+    dered_flux = flux/table['MW_TRANSMISSION_'+band]
+    
+    mag = -2.5*np.log10(dered_flux) + 22.5
+    
+    return (mag, snr)
+
+####################################################################################################
+####################################################################################################
+
+def tractor_flux_to_magnitude(flux, flux_ivar):
+    """
+    Convert Flux to Magnitude for LS Tractor Flux Values
+    
+    Parameters
+    ----------
+    flux : array
+        Array of Flux Values
+    flux_ivar : array
+        Array of Inverse Variance Values
+        
+    Returns
+    -------
+    mag : array
+        Array of Magnitude Values
+    mag_err : array
+        Array of Magnitude Error Values
+    """
+    
+    snr = flux*np.sqrt(flux_ivar)
+    mag = 22.5 - (2.5*np.log10(flux))
+    mag_err = 2.5*np.log10(1+(1/snr))
+    
+    return (mag, mag_err) 
+    
 ####################################################################################################
 ####################################################################################################
