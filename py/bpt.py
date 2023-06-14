@@ -206,7 +206,7 @@ def Kewley_06_OI(xx):
 ####################################################################################################
 
 def Plot_NII_BPT_Lines(axs = None, Kauffman = True, Kewley = True,\
-                       Schawinsky = True, limits = True):
+                       Schawinsky = True, limits = True, legend = False):
     """
     Function to plot [NII]-BPT Lines
     
@@ -242,24 +242,27 @@ def Plot_NII_BPT_Lines(axs = None, Kauffman = True, Kewley = True,\
         Ka03 = Kauffman_03_NII(xx)
         
         axs.plot(xx, Ka03, color = 'white', lw = 6.0)
-        axs.plot(xx, Ka03, color = 'k', lw = 3.0)
+        axs.plot(xx, Ka03, color = 'k', lw = 3.0, label = 'Kauffmann+03')
         
     if (Kewley == True):
         xx = np.linspace(-2.5, 0.47, 1000)
         Ke01 = Kewley_01_NII(xx)
         
         axs.plot(xx, Ke01, color = 'white', lw = 6.0)
-        axs.plot(xx, Ke01, color = 'k', ls = '--', lw = 3.0)
+        axs.plot(xx, Ke01, color = 'k', ls = '--', lw = 3.0, label = 'Kewley+01')
         
     if (Schawinsky == True):
         xx = np.linspace(-0.18, 1.0, 1000)
         Scha07 = Schawinsky_07_NII(xx)
         
         axs.plot(xx, Scha07, color = 'white', lw = 6.0)
-        axs.plot(xx, Scha07, color = 'k', ls = ':', lw = 3.0)
+        axs.plot(xx, Scha07, color = 'k', ls = ':', lw = 3.0, label = 'Schawinsky+07')
         
     if (limits == True):
         axs.set(xlim = [-2.5, 1.0], ylim = [-1.6, 1.5])
+        
+    if (legend == True):
+        axs.legend(loc = 'lower left', fontsize = 16)
         
 ####################################################################################################
 ####################################################################################################
