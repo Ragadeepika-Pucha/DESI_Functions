@@ -17,7 +17,7 @@ Version : 2022 August 15
 
 import numpy as np
 
-from astropy.cosmology import WMAP9 as cosmo
+#from astropy.cosmology import WMAP9 as cosmo
 from astropy.table import Table
 import astropy.units as u
 import fitsio
@@ -26,13 +26,15 @@ import desispec.io
 from desispec import coaddition
 from desitarget.targets import decode_targetid
 
+from cosmoprimo.fiducial import DESI
+
 ####################################################################################################
 ####################################################################################################
 
 def get_absolute_magnitude(magnitude, redshift):
     """
     Convert Apparent magnitude to Absolute magnitude.
-    Uses WMAP9 cosmology.
+    Uses Planck 2018 cosmology -- Fiducial DESI Cosmology.
     
     Parameters
     ----------
@@ -46,8 +48,10 @@ def get_absolute_magnitude(magnitude, redshift):
     Mag : array
         Array of absolute magnitudes for the input sources
     """
+    cosmo = DESI()
+    
     dl = cosmo.luminosity_distance(redshift)
-    Mag = magnitude - (5*np.log10(dl.value*1e+5))
+    Mag = magnitude - (5*np.log10(dl*1e+5))
     
     return (Mag)
 
@@ -80,10 +84,12 @@ def Flux_to_Luminosity(flux, redshift, flux_error = None):
         Only returned when flux_error is not None.
         Array of luminosity error values for the sources
     """
+    ## DESI Cosmology
+    cosmo = DESI()
     
     ## Compute luminosity distance
     dl = cosmo.luminosity_distance(redshift)
-    dl = dl.to(u.centimeter)    # Convert to cm as flux is in ergs/s/cm^2
+    dl = (dl*u.Mpc).to(u.centimeter)    # Convert to cm as flux is in ergs/s/cm^2
     
     # Luminosity = Flux*(4*pi*d^2)
     lum = flux*(4*np.pi)*(dl.value**2)
@@ -171,9 +177,12 @@ def calculate_bh_masses(ha_lum, ha_fwhm, ha_lum_err = None, ha_fwhm_err = None, 
     
     if ((ha_lum_err is not None)&(ha_fwhm_err is not None)):
         ## Error calculation
-        term1 = 0.204*(ha_lum_err/ha_lum)
-        term2 = 0.895*(ha_fwhm_err/ha_fwhm)
-
+        # term1 = 0.204*(ha_lum_err/ha_lum)
+        # term2 = 0.895*(ha_fwhm_err/ha_fwhm)
+        
+        term1 = 0.47*((np.log10((ha_lum + ha_lum_err)/1e+42)) - ((np.log10((ha_lum - ha_lum_err)/1e+42))))/2
+        term2 = 2.06*((np.log10((ha_fwhm + ha_fwhm_err)/1e+42)) - ((np.log10((ha_fwhm - ha_fwhm_err)/1e+42))))/2
+        
         log_mbh_err = np.sqrt((term1**2) + (term2**2))
 
         return (log_mbh, log_mbh_err)
