@@ -228,6 +228,9 @@ def Plot_NII_BPT_Lines(axs = None, Kauffman = True, Kewley = True,\
     limits : bool
         Whether or not to limit x- and y-range of the plot. Default is True.
         
+    legend : bool
+        Whether or not to have the legend for the demarcation lines. Default is False.
+        
     Returns
     -------
     None.
@@ -262,12 +265,13 @@ def Plot_NII_BPT_Lines(axs = None, Kauffman = True, Kewley = True,\
         axs.set(xlim = [-2.5, 1.0], ylim = [-1.6, 1.5])
         
     if (legend == True):
-        axs.legend(loc = 'lower left', fontsize = 16)
+        axs.legend(loc = 'lower left', fontsize = 20)
         
 ####################################################################################################
 ####################################################################################################
 
-def Plot_SII_BPT_Lines(axs = None, limits = True):
+def Plot_SII_BPT_Lines(axs = None, Kewley01 = True, Kewley06 = True, \
+                       limits = True, legend = False):
     """
     Function to plot [SII]-BPT Lines
     
@@ -277,8 +281,17 @@ def Plot_SII_BPT_Lines(axs = None, limits = True):
         The axis onto which the [SII]-BPT lines will be plotted.
         If ax = None, then the plotting function uses plt, rather than axis.
         
+    Kewley01 : bool
+        Whether or not to plot the Kewley+01 [SII]-BPT line. Default is True.
+        
+    Kewley06 : bool
+        Whether or not to plot the Kewley+06 [SII]-BPT line. Default is True.
+        
     limits : bool
         Whether or not to limit x- and y-range of the plot. Default is True.
+        
+    legend : bool
+        Whether or not to have the legend for the demarcation lines. Default is False.
         
     Returns
     -------
@@ -288,22 +301,28 @@ def Plot_SII_BPT_Lines(axs = None, limits = True):
     
     if (axs == None):
         axs = plt.gca()
-        
-    xx = np.linspace(-2.5, 0.1, 1000)
-    axs.plot(xx, Kewley_01_SII(xx), color = 'white', lw = 6.0)
-    axs.plot(xx, Kewley_01_SII(xx), color = 'k', lw = 3.0)
     
-    xx = np.linspace(-0.3, 0.5, 1000)
-    axs.plot(xx, Kewley_06_SII(xx), color = 'white', lw = 6.0)
-    axs.plot(xx, Kewley_06_SII(xx), color = 'k', lw = 3.0, ls = '--')
+    if (Kewley01 == True):
+        xx = np.linspace(-2.5, 0.1, 1000)
+        axs.plot(xx, Kewley_01_SII(xx), color = 'white', lw = 6.0)
+        axs.plot(xx, Kewley_01_SII(xx), color = 'k', lw = 3.0, label = 'Kewley+01')
+        
+    if (Kewley06 == True):
+        xx = np.linspace(-0.3, 0.5, 1000)
+        axs.plot(xx, Kewley_06_SII(xx), color = 'white', lw = 6.0)
+        axs.plot(xx, Kewley_06_SII(xx), color = 'k', lw = 3.0, ls = '--', label = 'Kewley+06')
     
     if (limits == True):
         axs.set(xlim = [-1.5, 0.5], ylim = [-1.6, 1.5])
         
+    if (legend == True):
+        axs.legend(loc = 'lower left', fontsize = 16)
+        
 ####################################################################################################
 ####################################################################################################
 
-def Plot_OI_BPT_Lines(axs = None, limits = True):
+def Plot_OI_BPT_Lines(axs = None, Kewley01 = True, Kewley06 = True, limits = True, \
+                     legend = False):
     """
     Function to plot [OI]-BPT Lines
     
@@ -313,8 +332,17 @@ def Plot_OI_BPT_Lines(axs = None, limits = True):
         The axis onto which the [OI]-BPT lines will be plotted.
         If ax = None, then the plotting function uses plt, rather than axis.
         
+    Kewley01 : bool
+        Whether or not to plot the Kewley+01 [OI]-BPT line. Default is True.
+        
+    Kewley06 : bool
+        Whether or not to plot the Kewley+06 [OI]-BPT line. Default is True.
+        
     limits : bool
         Whether or not to limit x- and y-range of the plot. Default is True.
+        
+    legend : bool
+        Whether or not to have the legend for the demarcation lines. Default is False.
         
     Returns
     -------
@@ -325,21 +353,26 @@ def Plot_OI_BPT_Lines(axs = None, limits = True):
     if (axs == None):
         axs = plt.gca()
         
-    xx = np.linspace(-2.5, -0.8, 1000)
-    axs.plot(xx, Kewley_01_OI(xx), color = 'white', lw = 6.0)
-    axs.plot(xx, Kewley_01_OI(xx), color = 'k', lw = 3.0)
-    
-    xx = np.linspace(-1.1, 0.5, 1000)
-    axs.plot(xx, Kewley_06_OI(xx), color = 'white', lw = 6.0)
-    axs.plot(xx, Kewley_06_OI(xx), color = 'k', lw = 3.0, ls = '--')
+    if (Kewley01 == True):
+        xx = np.linspace(-2.5, -0.8, 1000)
+        axs.plot(xx, Kewley_01_OI(xx), color = 'white', lw = 6.0)
+        axs.plot(xx, Kewley_01_OI(xx), color = 'k', lw = 3.0, label = 'Kewley+01')
+        
+    if (Kewley06 == True):
+        xx = np.linspace(-1.1, 0.5, 1000)
+        axs.plot(xx, Kewley_06_OI(xx), color = 'white', lw = 6.0)
+        axs.plot(xx, Kewley_06_OI(xx), color = 'k', lw = 3.0, ls = '--', label = 'Kewley+06')
     
     if (limits == True):
         axs.set(xlim = [-2.5, 0.5], ylim = [-1.6, 1.5])
         
+    if (legend == True):
+        axs.legend(loc = 'lower left', fontsize = 16)
+        
 ####################################################################################################
 ####################################################################################################
 
-def Classify_NII_BPT(nii_ha, oiii_hb):
+def Classify_NII_BPT(nii_ha, oiii_hb, liners = False):
     """
     Classify sources into AGN, SF, and Composites using the [NII]-BPT diagram.
     
@@ -350,6 +383,10 @@ def Classify_NII_BPT(nii_ha, oiii_hb):
         
     oiii_hb : float
         log ([OIII]/Hb) values
+        
+    liners : bool
+        Whether or not to separate the LINERs.
+        Default is False
         
     Returns
     -------
@@ -366,12 +403,18 @@ def Classify_NII_BPT(nii_ha, oiii_hb):
     
     Ka_03_vals = Kauffman_03_NII(nii_ha)
     Ke_01_vals = Kewley_01_NII(nii_ha)
+    Sy_07_vals = Schawinsky_07_NII(nii_ha)
     
-    is_agn = ((oiii_hb >= Ke_01_vals)|(nii_ha >= 0.47))
+    is_sy = ((oiii_hb >= Ke_01_vals)|(nii_ha >= 0.47))&(oiii_hb >= Sy_07_vals)
+    is_liner = ((oiii_hb >= Ke_01_vals)|(nii_ha >= 0.47))&(oiii_hb < Sy_07_vals)
+    is_agn = (is_sy|is_liner)
     is_comp = ((oiii_hb >= Ka_03_vals)|(nii_ha >= 0.05))&(~is_agn)
     is_sf = (~is_agn)&(~is_comp)
     
-    return (is_agn, is_comp, is_sf)
+    if (liners == True):
+        return (is_sy, is_liner, is_comp, is_sf)
+    else:
+        return (is_agn, is_comp, is_sf)
     
 ####################################################################################################
 ####################################################################################################
