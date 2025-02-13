@@ -17,7 +17,7 @@ Version : 2022 August 15
 
 import numpy as np
 
-#from astropy.cosmology import WMAP9 as cosmo
+from astropy.cosmology import WMAP9 as cosmo
 from astropy.table import Table
 import astropy.units as u
 import fitsio
@@ -26,7 +26,7 @@ import desispec.io
 from desispec import coaddition
 from desitarget.targets import decode_targetid
 
-from cosmoprimo.fiducial import DESI
+#from cosmoprimo.fiducial import DESI
 
 ####################################################################################################
 ####################################################################################################
@@ -48,10 +48,10 @@ def get_absolute_magnitude(magnitude, redshift):
     Mag : array
         Array of absolute magnitudes for the input sources
     """
-    cosmo = DESI()
+    #cosmo = DESI()
     
     dl = cosmo.luminosity_distance(redshift)
-    Mag = magnitude - (5*np.log10(dl*1e+5))
+    Mag = magnitude - (5*np.log10(dl.value*1e+5))
     
     return (Mag)
 
@@ -85,11 +85,11 @@ def Flux_to_Luminosity(flux, redshift, flux_error = None):
         Array of luminosity error values for the sources
     """
     ## DESI Cosmology
-    cosmo = DESI()
+    #cosmo = DESI()
     
     ## Compute luminosity distance
     dl = cosmo.luminosity_distance(redshift)
-    dl = (dl*u.Mpc).to(u.centimeter)    # Convert to cm as flux is in ergs/s/cm^2
+    dl = dl.to(u.centimeter)    # Convert to cm as flux is in ergs/s/cm^2
     
     # Luminosity = Flux*(4*pi*d^2)
     lum = flux*(4*np.pi)*(dl.value**2)
@@ -248,5 +248,74 @@ def tractor_flux_to_magnitude(flux, flux_ivar):
     
     return (mag, mag_err) 
     
+####################################################################################################
+####################################################################################################
+
+def r_kcorr(gr,z):
+    '''
+    This function returns the k correction for SDSS r band 
+    
+    According to the Chilingarian et al. 2010 from which this k-correction is based, 
+    we can only apply this on z<0.5
+    
+    Function from Viraj Manwadkar
+    
+    '''
+    
+    # it is power of z * power of gr
+    coeff_10 = -1.61294 * (z**1) * (gr**0)
+    coeff_11 = 3.81378  * (z**1) * (gr**1)
+    coeff_12 = -3.56114  * (z**1) * (gr**2)
+    coeff_13 = 2.47133  * (z**1) * (gr**3)
+    
+    coeff_20 = 9.13285  * (z**2) * (gr**0)
+    coeff_21 = 9.85141 * (z**2) * (gr**1)
+    coeff_22 = -5.1432 * (z**2) * (gr**2)
+    coeff_23 = -7.02213 * (z**2) * (gr**3)
+    
+    coeff_30 = -81.8341 * (z**3) * (gr**0)
+    coeff_31 = -30.3631 * (z**3) * (gr**1)
+    coeff_32 = 38.5052 * (z**3) * (gr**2)
+    
+    coeff_40 = 250.732 * (z**4) * (gr**0)
+    coeff_41 = -25.0159 * (z**4) * (gr**1)
+    
+    coeff_50 = -215.377 * (z**5) * (gr**0)
+
+    kr =  (coeff_10 + coeff_11 + coeff_12 + coeff_13) + \
+    (coeff_20 + coeff_21 + coeff_22 + coeff_23) + \
+    (coeff_30 + coeff_31 + coeff_32) + (coeff_40 + coeff_41) + (coeff_50)
+    
+    return (kr)
+
+####################################################################################################
+####################################################################################################
+    
+def get_stellar_mass(gr,rmag,zred):
+    '''
+    Computes the stellar mass of object using the SAGA 2 conversion
+    
+    It is given by Log10(Mstar) = 1.254 + 1.098*(g-r) - 0.4 M_r
+    
+    We would need to get the absolute r band mag above.
+    We will also have to a K correction to the absolute magnitude
+    
+    Function from Viraj Manwadkar
+    
+    '''
+    
+    #convert the zred to the luminosity distance 
+    #d = Planck18.luminosity_distance(zred)
+    d = cosmo.luminosity_distance(zred)
+    d_in_pc = d.value * 1e6
+    
+    #M = m + 5 - 5*log10(d/pc) - Kcor
+    kr = r_kcorr(gr,zred)
+    M_r = rmag + 5 - 5*np.log10(d_in_pc) - kr
+    
+    log_mstar = 1.254 + 1.098*gr - 0.4*M_r
+    
+    return (log_mstar)
+
 ####################################################################################################
 ####################################################################################################
