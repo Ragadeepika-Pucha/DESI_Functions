@@ -5,8 +5,9 @@ It consists of following functions:
     1. get_image_cutout (ra_in, dec_in, **kwargs)
     2. get_multiple_image_cutouts (ra_in, dec_in, **kwargs)
     3. get_multiwavelength_cutouts (ra_in, dec_in, **kwargs)
-    4. plot_cutouts (imgs, Nplotmax)
-    5. add_lines (z, **kwargs)
+    4. get_image_model_residual_cutout(ra_in, dec_in, **kwargs)
+    5. plot_cutouts (imgs, Nplotmax)
+    6. add_lines (z, **kwargs)
     
 Author : Ragadeepika Pucha
 Version : 2022 June 21
@@ -39,6 +40,7 @@ def get_image_cutout(ra_in, dec_in, layername = 'ls-dr9', pixel_scale = 0.262, c
     - GALAX - 'galex' - 1.5"/pixel
     - SDSS - 'sdss' - 0.396"/pixel
     - LS DR9 - 'ls-dr9' - 0.262"/pixel
+    - HSC - 'hsc-dr3' - 0.168"/pixel
     - WISE W1/W2 - 'unwise-neo6' - 2.75"/pixel
     - VLASS - 'vlass1.2' - 1.0"/pixel
     
@@ -71,9 +73,9 @@ def get_image_cutout(ra_in, dec_in, layername = 'ls-dr9', pixel_scale = 0.262, c
     try:
         img = plt.imread(download_file(cutout_url,cache=False,show_progress=False,timeout=120))
     except HTTPError as e:
-        if (e.code == 500):
+        if (e.code >= 500):
             img = np.zeros((int(pixels), int(pixels),3))
-    
+            
     return (img)
 
 ####################################################################################################
@@ -172,6 +174,81 @@ def get_multiwavelength_cutouts(ra_in, dec_in, cutout_size = 60.):
         imgs.append(img)
     
     return (imgs)
+
+####################################################################################################
+####################################################################################################
+
+def get_image_model_residual_cutout(ra_in, dec_in, layername = 'ls-dr9', pixel_scale = 0.262, cutout_size = 60.):
+    """
+    Function to get the image cutout, tractor model, and residual from a given survey.
+    Getting images for each of these surveys require a layername.
+    To be consistent, we want to show the pixel scales to be similar to the ones from the survey.
+    List of layernames and pixel scales for the surveys - 
+    - GALAX - 'galex' - 1.5"/pixel
+    - SDSS - 'sdss' - 0.396"/pixel
+    - LS DR9 - 'ls-dr9' - 0.262"/pixel
+    - HSC - 'hsc-dr3' - 0.168"/pixel
+    - WISE W1/W2 - 'unwise-neo6' - 2.75"/pixel
+    - VLASS - 'vlass1.2' - 1.0"/pixel
+    
+    Parameters
+    ----------
+    ra_in, dec_in : float, float
+        Coordinates of the sky location for the image cutout
+        
+    layername : str
+        String that leads to the url of the survey
+        
+    pixel_scale : float
+        Pixel scale for the given survey in arcseconds per pixel
+        
+    cutout_size : float
+        Size of the cutout. Default = 60" (1 arc-minute in size)
+        This is used along with the pixel_scale, to calculate the number of pixels.
+        Note - The number of pixels is rounded to the nearest integer. 
+        The final cutout size is approximately may not be the exact input value, but close to it
+        
+    Returns
+    -------
+        img : 2d array
+            Array containing the image cutout
+
+        model : 2d array
+            Array containing the model cutout
+
+        resid : 2d array
+            Array containing the residual cutout
+    """
+    
+    pixels = cutout_size/pixel_scale
+    cutout_url = 'http://legacysurvey.org/viewer/jpeg-cutout/?ra=%.6f&dec=%.6f&layer='\
+    %(ra_in,dec_in)+layername+'&pixscale=%g&size=%d'%(pixel_scale, pixels)
+
+    model_url = 'http://legacysurvey.org/viewer/jpeg-cutout/?ra=%.6f&dec=%.6f&layer='\
+    %(ra_in,dec_in)+layername+'-model&pixscale=%g&size=%d'%(pixel_scale, pixels)
+
+    resid_url = 'http://legacysurvey.org/viewer/jpeg-cutout/?ra=%.6f&dec=%.6f&layer='\
+    %(ra_in,dec_in)+layername+'-resid&pixscale=%g&size=%d'%(pixel_scale, pixels)
+    
+    try:
+        img = plt.imread(download_file(cutout_url,cache=False,show_progress=False,timeout=120))
+    except HTTPError as e:
+        if (e.code >= 500):
+            img = np.zeros((int(pixels), int(pixels),3))
+
+    try:
+        model = plt.imread(download_file(model_url,cache=False,show_progress=False,timeout=120))
+    except HTTPError as e:
+        if (e.code >= 500):
+            model = np.zeros((int(pixels), int(pixels),3))
+
+    try:
+        resid = plt.imread(download_file(resid_url,cache=False,show_progress=False,timeout=120))
+    except HTTPError as e:
+        if (e.code >= 500):
+            resid = np.zeros((int(pixels), int(pixels),3))
+            
+    return (img, model, resid)
 
 ####################################################################################################
 ####################################################################################################
