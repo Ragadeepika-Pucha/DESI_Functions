@@ -6,14 +6,16 @@ It consists of the following functions:
     3) Schawinsky_07_NII(xx)
     4) Kewley_01_SII(xx)
     5) Kewley_06_SII(xx)
-    6) Kewley_01_OI(xx)
-    7) Kewley_06_OI(xx)
-    8) Plot_NII_BPT_Lines(axs, Kauffman, Kewley, Schawinsky, limits)
-    9) Plot_SII_BPT_Lines(axs, limits)
-    10) Plot_OI_BPT_Lines(axs, limits)
-    11) Classify_NII_BPT(nii_ha, oiii_hb)
-    12) Classify_SII_BPT(sii_ha, oiii_hb)
-    13) Classify_OI_BPT(oi_ha, oiii_hb)
+    6) Law_21_SII(xx)
+    7) Kewley_01_OI(xx)
+    8) Kewley_06_OI(xx)
+    9) Plot_NII_BPT_Lines(axs, Kauffman, Kewley, Schawinsky, limits)
+    10) Plot_SII_BPT_Lines(axs, limits)
+    11) Plot_OI_BPT_Lines(axs, limits)
+    12) Classify_NII_BPT(nii_ha, oiii_hb)
+    13) Classify_SII_BPT(sii_ha, oiii_hb)
+    14) Classify_Law_SII_BPT(sii_ha, oiii_hb)
+    15) Classify_OI_BPT(oi_ha, oiii_hb)
 """
 
 ####################################################################################################
@@ -155,6 +157,32 @@ def Kewley_06_SII(xx):
 ####################################################################################################
 ####################################################################################################
 
+def Law_21_SII(xx):
+    """
+    Function that outputs the Law+21 line values for given log([SII]/Ha)values.
+    This can be used for both plotting the separation lines on the BPT Diagram and 
+    also for separating Seyferts from [SII]-BPT diagram
+
+    Parameters
+    ----------
+    xx : float
+        Input values of log ([SII]/Ha)
+
+    Returns
+    -------
+    yy : float
+        Output the value of (0.648/(log([SII]/Ha) - 0.324) + 1.349) for the input value of [SII]/Ha.
+    """
+
+    ## From Law et al. 2021
+    
+    yy = (0.648/(xx - 0.324)) + 1.349
+    
+    return (yy)
+
+####################################################################################################
+####################################################################################################
+
 def Kewley_01_OI(xx):
     """
     Function that outputs the Kewley+01 line values for given log([OI]/Ha) values.
@@ -270,7 +298,7 @@ def Plot_NII_BPT_Lines(axs = None, Kauffman = True, Kewley = True,\
 ####################################################################################################
 ####################################################################################################
 
-def Plot_SII_BPT_Lines(axs = None, Kewley01 = True, Kewley06 = True, \
+def Plot_SII_BPT_Lines(axs = None, Kewley01 = True, Kewley06 = True, Law21 = True, \
                        limits = True, legend = False):
     """
     Function to plot [SII]-BPT Lines
@@ -286,6 +314,9 @@ def Plot_SII_BPT_Lines(axs = None, Kewley01 = True, Kewley06 = True, \
         
     Kewley06 : bool
         Whether or not to plot the Kewley+06 [SII]-BPT line. Default is True.
+
+    Law21 : bool
+        Whether or not to plot the Law+21 [SII]-BPT line. Default is True.
         
     limits : bool
         Whether or not to limit x- and y-range of the plot. Default is True.
@@ -311,12 +342,17 @@ def Plot_SII_BPT_Lines(axs = None, Kewley01 = True, Kewley06 = True, \
         xx = np.linspace(-0.3, 0.5, 1000)
         axs.plot(xx, Kewley_06_SII(xx), color = 'white', lw = 6.0)
         axs.plot(xx, Kewley_06_SII(xx), color = 'k', lw = 3.0, ls = '--', label = 'Kewley+06')
+
+    if (Law21 == True):
+        xx = np.linspace(-2.5, 0.1, 1000)
+        axs.plot(xx, Law_21_SII(xx), color = 'white', lw = 6.0)
+        axs.plot(xx, Law_21_SII(xx), color = 'k', lw = 3.0, ls = ':', label = 'Law+21')
     
     if (limits == True):
-        axs.set(xlim = [-1.5, 0.5], ylim = [-1.6, 1.5])
+        axs.set(xlim = [-2.5, 1.0], ylim = [-1.6, 1.5])
         
     if (legend == True):
-        axs.legend(loc = 'lower left', fontsize = 16)
+        axs.legend(loc = 'lower left', fontsize = 20)
         
 ####################################################################################################
 ####################################################################################################
@@ -367,7 +403,7 @@ def Plot_OI_BPT_Lines(axs = None, Kewley01 = True, Kewley06 = True, limits = Tru
         axs.set(xlim = [-2.5, 0.5], ylim = [-1.6, 1.5])
         
     if (legend == True):
-        axs.legend(loc = 'lower left', fontsize = 16)
+        axs.legend(loc = 'lower left', fontsize = 20)
         
 ####################################################################################################
 ####################################################################################################
@@ -451,6 +487,37 @@ def Classify_SII_BPT(sii_ha, oiii_hb):
     sf_sii = (~sy_sii)&(~liner_sii)
     
     return (sf_sii, sy_sii, liner_sii)
+
+####################################################################################################
+####################################################################################################
+
+def Classify_Law_SII_BPT(sii_ha, oiii_hb):
+    """
+    Classify sources into SF and Seyferts using Law et al. (2001).
+
+    Parameters
+    ----------
+    sii_ha : float
+        log ([SII]/Ha) values
+
+    oiii_hb : float
+        log ([OIII]/Hb) values
+
+    Returns
+    -------
+    sf_sii : numpy array
+        Boolean array where SF = True.
+
+    agn_sii : numpy array
+        Boolean array where AGN = True
+    """
+
+    L21_values = Law_21_SII(sii_ha)
+
+    agn_sii = (oiii_hb >= L21_values)
+    sf_sii = ~agn_sii
+
+    return (sf_sii, agn_sii)
 
 ####################################################################################################
 ####################################################################################################
