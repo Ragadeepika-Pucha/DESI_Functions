@@ -5,8 +5,9 @@ This module consists of the following functions:
     2. Flux_to_Luminosity(flux, redshift, flux_error = None)
     3. sigma_to_fwhm(sigma)
     4. calculate_bh_masses(ha_lum, ha_fwhm, epsilon = 1.)
-    5. tractor_flux_to_mag (table, band)
-    6. tractor_flux_to_magnitude (flux, flux_ivar)
+    5. calculate_eddington_ratio(log_mbh, Lbol)
+    6. tractor_flux_to_mag (table, band)
+    7. tractor_flux_to_magnitude (flux, flux_ivar)
     
 Author : Ragadeepika Pucha
 Version : 2022 August 15
@@ -191,6 +192,34 @@ def calculate_bh_masses(ha_lum, ha_fwhm, ha_lum_err = None, ha_fwhm_err = None, 
 
 ####################################################################################################
 ####################################################################################################
+
+def calculate_eddington_ratio(log_mbh, Lbol):
+    """
+    Calculate Eddington ratios for BL-AGN Candidates
+
+    Parameters
+    ----------
+    log_mbh : array
+        Array of log(M_BH/M_sun) values of the BL-AGN.
+
+    Lbol : array
+        Array of bolometric luminosities of the BL-AGN.
+
+    Returns
+    -------
+    lam_edd : array
+        Array of Eddington Ratios of the BL-AGN
+    """
+
+    mbh = 10**log_mbh
+
+    lam_edd = Lbol/(mbh*1.3e+38)
+
+    return (lam_edd)
+
+####################################################################################################
+####################################################################################################
+
 
 def tractor_flux_to_mag(table, band):
     """
